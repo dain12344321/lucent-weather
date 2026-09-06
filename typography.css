@@ -1,0 +1,61 @@
+:root {
+  --font-ui: "Segoe UI", Arial, sans-serif;
+  --text-small: 10px;
+  --text-body: 12px;
+  --text-label: 10px;
+}
+html,
+body,
+button,
+input,
+select,
+textarea,
+h1,
+h2,
+h3,
+strong,
+svg text {
+  font-family: var(--font-ui);
+}
+body {
+  font-size: var(--text-body);
+}
+h1 {
+  font-weight: 500;
+}
+#temperature {
+  font-family: var(--font-ui);
+  font-weight: 300;
+}
+.eyebrow,
+.sun-times span,
+.card-head,
+#date {
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+#region,
+.metrics,
+#feels,
+.day {
+  font-size: var(--text-body);
+}
+#status,
+footer,
+#moon-detail,
+#moon-horizon,
+.rain {
+  font-size: var(--text-small);
+}
+.sun-times strong,
+.temps,
+#temperature {
+  font-variant-numeric: tabular-nums;
+}
+.moon-card strong {
+  font-weight: 500;
+}
+footer {
+  line-height: 1.45;
+}

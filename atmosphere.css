@@ -1,0 +1,568 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #fff;
+  font-size: 13px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #417bb0;
+  isolation: isolate;
+}
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+[hidden] {
+  display: none !important;
+}
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(
+    165deg,
+    #2d629f 0%,
+    #589ac8 40%,
+    #a2bbc9 70%,
+    #638991 100%
+  );
+}
+.orb {
+  position: absolute;
+  width: 86px;
+  height: 86px;
+  right: 44px;
+  top: 106px;
+  border-radius: 50%;
+  background: #fff7d8;
+  box-shadow:
+    0 0 45px 22px #ffebbd55,
+    0 0 160px 85px #ffe7b32b;
+  filter: blur(0.5px);
+}
+.cloud {
+  position: absolute;
+  width: 440px;
+  height: 120px;
+  border-radius: 50%;
+  background: #f3f5ff55;
+  filter: blur(30px);
+  transform: rotate(-15deg);
+  animation: drift 50s ease-in-out infinite alternate;
+}
+.cloud-one {
+  left: -250px;
+  top: 200px;
+}
+.cloud-two {
+  left: 230px;
+  top: 290px;
+  opacity: 0.6;
+  animation-delay: -20s;
+}
+.hills {
+  position: absolute;
+  bottom: -90px;
+  left: -30%;
+  width: 170%;
+  height: 330px;
+  border-radius: 45% 60% 0 0;
+  transform: rotate(-13deg);
+  background: linear-gradient(145deg, #28566280, #16333a);
+  filter: blur(2px);
+}
+.hills-back {
+  bottom: 12px;
+  left: -65%;
+  background: #49687580;
+  transform: rotate(22deg);
+}
+.hills-front {
+  opacity: 0.65;
+}
+.precipitation {
+  position: absolute;
+  inset: -50%;
+  opacity: 0;
+}
+body[data-weather="night"] .atmosphere,
+body[data-weather="night-cloudy"] .atmosphere {
+  background:
+    radial-gradient(ellipse at 80% 0%, #313b6b, transparent 70%),
+    linear-gradient(#111b3c, #263255 65%, #394863);
+}
+body[data-weather="night"] .orb,
+body[data-weather="night-cloudy"] .orb {
+  width: 57px;
+  height: 57px;
+  background: #e8eaf4;
+  box-shadow:
+    0 0 50px 10px #d9e1ff23,
+    0 0 130px #b9c8ff33;
+}
+body[data-weather="night"] .cloud {
+  opacity: 0.15;
+}
+body[data-weather="cloudy"] .atmosphere {
+  background: linear-gradient(#5e788f, #93a9b9 55%, #536c7b);
+}
+body[data-weather="cloudy"] .orb {
+  opacity: 0.35;
+  filter: blur(15px);
+}
+body[data-weather="cloudy"] .cloud,
+body[data-weather="night-cloudy"] .cloud {
+  width: 700px;
+  height: 180px;
+  opacity: 0.8;
+}
+body[data-weather="rain"] .atmosphere,
+body[data-weather="storm"] .atmosphere {
+  background: linear-gradient(#253d56, #526b80 55%, #2a414b);
+}
+body[data-weather="rain"] .orb,
+body[data-weather="storm"] .orb,
+body[data-weather="fog"] .orb {
+  display: none;
+}
+body[data-weather="rain"] .precipitation,
+body[data-weather="storm"] .precipitation {
+  opacity: 0.24;
+  background-image: repeating-linear-gradient(
+    102deg,
+    transparent 0,
+    transparent 39px,
+    #d1e8fa 40px,
+    transparent 41px
+  );
+  background-size: 83px 170px;
+  transform: rotate(9deg);
+  animation: rain 1.3s linear infinite;
+}
+body[data-weather="snow"] .atmosphere {
+  background: linear-gradient(#526c92, #a4b7d0 60%, #718c9a);
+}
+body[data-weather="snow"] .orb {
+  opacity: 0.4;
+  filter: blur(12px);
+}
+body[data-weather="snow"] .precipitation {
+  opacity: 0.65;
+  background-image:
+    radial-gradient(circle, #fff 1.5px, transparent 3px),
+    radial-gradient(circle, #fff 1px, transparent 2px);
+  background-size:
+    63px 89px,
+    107px 131px;
+  background-position:
+    0 0,
+    30px 10px;
+  animation: snow 14s linear infinite;
+}
+body[data-weather="fog"] .atmosphere {
+  background: linear-gradient(#728d9b, #a9b9c1 65%, #839ca1);
+}
+body[data-weather="fog"] .cloud {
+  width: 900px;
+  height: 230px;
+  opacity: 0.9;
+}
+header {
+  height: 55px;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  -webkit-app-region: drag;
+}
+.brand {
+  font-size: 10px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: #ffffffc0;
+}
+.brand .muted {
+  display: none;
+}
+.sun-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #fff4ce;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.actions {
+  display: flex;
+  gap: 5px;
+  -webkit-app-region: no-drag;
+}
+button {
+  border: 0;
+  border-radius: 9px;
+  background: #ffffff14;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+button:hover {
+  background: #ffffff28;
+}
+#close {
+  font-size: 21px;
+  line-height: 18px;
+  padding: 5px 9px;
+}
+main {
+  padding: 0 20px 13px;
+}
+h1 {
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: -0.6px;
+  margin: 5px 0;
+}
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  font-weight: 500;
+  margin: 0 0 8px;
+  color: #ffffffa6;
+}
+.muted {
+  color: #ffffffbf;
+}
+.place-row {
+  position: relative;
+  text-align: center;
+  padding-top: 11px;
+}
+.place-row > div {
+  width: 100%;
+}
+#date {
+  font-size: 9px;
+  letter-spacing: 1.8px;
+}
+#region {
+  font-size: 10px;
+  margin: 5px 0 0;
+  color: #ffffffa8;
+}
+#refresh {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  font-size: 20px;
+  background: none;
+  padding: 3px;
+}
+.current {
+  text-align: center;
+  margin: 6px 0 0;
+}
+#temperature {
+  display: block;
+  font-size: 88px;
+  font-weight: 200;
+  letter-spacing: -5px;
+  line-height: 1.07;
+  text-shadow: 0 3px 30px #1b2e4d25;
+}
+#condition {
+  font-size: 17px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+#feels {
+  font-size: 12px;
+  margin-top: 4px;
+}
+.metrics {
+  display: flex;
+  justify-content: center;
+  gap: 17px;
+  font-size: 10px;
+  color: #ffffffb0;
+  margin: 11px 0 20px;
+}
+.light-card,
+.outlook {
+  background: #17345236;
+  backdrop-filter: blur(24px);
+  border: 1px solid #ffffff22;
+  border-radius: 18px;
+  box-shadow: 0 6px 25px #10233f0a;
+}
+.light-card {
+  padding: 14px 16px 12px;
+}
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: #fff9e2;
+}
+.card-head .eyebrow {
+  margin: 0;
+}
+.light-card svg {
+  display: block;
+  width: 100%;
+  height: 97px;
+  margin: 0 auto;
+}
+.sun-times {
+  display: flex;
+  justify-content: space-between;
+}
+.sun-times span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: #ffffff99;
+}
+.sun-times strong {
+  display: block;
+  font-size: 21px;
+  font-weight: 400;
+  margin-top: 3px;
+}
+.right {
+  text-align: right;
+}
+#next-event {
+  text-align: center;
+  color: #fff2cf;
+  font-size: 11px;
+  margin: 11px 0 0;
+}
+.outlook {
+  margin-top: 12px;
+  padding: 13px 16px 5px;
+}
+.outlook > .eyebrow {
+  margin-bottom: 3px;
+}
+.day {
+  display: grid;
+  grid-template-columns: 43px 1fr 31px 67px;
+  gap: 7px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid #ffffff15;
+  font-size: 11px;
+}
+.day:first-child {
+  border-top: 0;
+}
+.temps {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.rain {
+  font-size: 10px;
+  color: #c7e9ff;
+}
+#status {
+  font-size: 9px;
+  text-align: center;
+  color: #fff4c5;
+  min-height: 13px;
+  margin: 10px 0 4px;
+}
+footer {
+  font-size: 8px;
+  line-height: 1.7;
+  text-align: center;
+  color: #ffffff80;
+}
+#setup {
+  padding-top: 70px;
+  min-height: 600px;
+}
+#setup h1 {
+  font-size: 38px;
+  font-weight: 300;
+}
+.intro {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #ffffffb0;
+  margin-bottom: 30px;
+}
+.search {
+  display: flex;
+  gap: 7px;
+  margin-top: 8px;
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+}
+input,
+select {
+  border: 1px solid #ffffff40;
+  background: #17345288;
+  border-radius: 9px;
+  padding: 11px;
+}
+.search button {
+  background: #ffffffed;
+  color: #234567;
+}
+.units {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 17px 0;
+}
+.result {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  margin: 7px 0;
+  background: #17345280;
+  line-height: 1.5;
+}
+.quiet {
+  margin-top: 12px;
+}
+@keyframes drift {
+  to {
+    translate: 100px -12px;
+  }
+}
+@keyframes rain {
+  to {
+    background-position: -30px 170px;
+  }
+}
+@keyframes snow {
+  to {
+    background-position:
+      40px 356px,
+      5px 262px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+header {
+  height: 48px;
+}
+.place-row {
+  padding-top: 7px;
+}
+#temperature {
+  font-size: 78px;
+}
+.metrics {
+  margin-bottom: 14px;
+}
+.light-card svg {
+  height: 84px;
+}
+.day {
+  padding: 8px 0;
+}
+.outlook {
+  margin-top: 10px;
+}
+#status {
+  margin-top: 7px;
+}
+.orb {
+  top: 95px;
+}
+/* Readable Windows typography with a lighter, balanced weather hierarchy. */
+:root {
+  font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif;
+}
+h1 {
+  font-family: "Segoe UI Variable Display", "Segoe UI", Arial, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.65px;
+}
+#temperature {
+  font-family: "Segoe UI Variable Display", "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
+  font-size: 80px;
+  letter-spacing: -4px;
+  font-variant-numeric: tabular-nums;
+}
+#condition {
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: 0.1px;
+}
+#feels {
+  font-size: 13px;
+  color: #ffffffdc;
+}
+.metrics {
+  font-size: 11px;
+  color: #ffffffd0;
+}
+.eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+}
+.day {
+  font-size: 12px;
+  line-height: 16px;
+  padding: 7px 0;
+  grid-template-columns: 43px 1fr 31px 73px;
+}
+.temps {
+  font-weight: 500;
+}
+.sun-times strong {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.sun-times span {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+#status {
+  font-size: 10px;
+}
+footer {
+  font-size: 9px;
+  color: #ffffffab;
+}
+.light-card,
+.outlook {
+  background: #142d4c52;
+}
+#region {
+  font-size: 11px;
+  color: #ffffffca;
+}
