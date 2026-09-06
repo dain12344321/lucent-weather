@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="night" x2="1" y2="1"><stop stop-color="#15223f"/><stop offset="1" stop-color="#263b61"/></linearGradient>
+    <linearGradient id="day" x2=".7" y2="1"><stop stop-color="#3184c4"/><stop offset="1" stop-color="#75bfe5"/></linearGradient>
+    <linearGradient id="cloud" x2=".3" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#dcecf5"/></linearGradient>
+    <clipPath id="tile"><rect x="8" y="8" width="240" height="240" rx="52"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <path fill="url(#night)" d="M8 8h240v240H8z"/>
+    <path fill="url(#day)" d="M8 8h240v240z"/>
+    <path d="M8 8 248 248" stroke="#bbdef5" stroke-opacity=".32" stroke-width="3"/>
+    <g stroke="#ffe2a1" stroke-width="8" stroke-linecap="round">
+      <path d="M178 35v12m0 64v12m-44-44h12m64 0h12m-75-31 8 8m46 46 8 8m0-62-8 8m-46 46-8 8"/>
+      <circle cx="178" cy="79" r="26" fill="#ffdb7b" stroke="none"/>
+    </g>
+    <path d="M56 211c-18 0-31-13-31-30 0-16 12-29 28-30 6-24 25-40 50-40 23 0 42 14 49 35h2c20 0 37 15 37 34s-16 31-36 31z" fill="#08162f" opacity=".2" transform="translate(0 4)"/>
+    <path d="M56 207c-18 0-31-13-31-30 0-16 12-29 28-30 6-24 25-40 50-40 23 0 42 14 49 35h2c20 0 37 15 37 34s-16 31-36 31z" fill="url(#cloud)"/>
+    <path d="M61 198h90" stroke="#bed7e8" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+    <rect x="9.5" y="9.5" width="237" height="237" rx="50.5" fill="none" stroke="#e1f3ff" stroke-opacity=".22" stroke-width="3"/>
+  </g>
+</svg>

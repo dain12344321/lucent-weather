@@ -1,0 +1,453 @@
+/* Independent weather and solar phase layers: precipitation stays accurate at night. */
+body[data-scene] {
+  --sky-top: #2764a5;
+  --sky-mid: #67a4cf;
+  --sky-low: #b9ccce;
+  --cloud-color: #f1f5ff;
+  --drop-opacity: 0.25;
+  --drop-size: 70px 160px;
+  --drop-speed: 1.5s;
+}
+body[data-scene] .atmosphere {
+  background: linear-gradient(
+    175deg,
+    var(--sky-top),
+    var(--sky-mid) 58%,
+    var(--sky-low)
+  );
+}
+body[data-scene] .orb {
+  display: block;
+  width: 68px;
+  height: 68px;
+  right: 43px;
+  top: 115px;
+  opacity: 1;
+  filter: none;
+  background: #fff4cf;
+  box-shadow:
+    0 0 48px 20px #ffeac03a,
+    0 0 120px 60px #ffeac01c;
+}
+body[data-scene] .cloud {
+  background: var(--cloud-color);
+  opacity: 0.16;
+  width: 490px;
+  height: 135px;
+  filter: blur(30px);
+}
+body[data-scene] .precipitation {
+  opacity: 0;
+  background: none;
+  animation: none;
+  transform: none;
+}
+body[data-scene="partly-cloudy"] .cloud {
+  opacity: 0.55;
+  width: 550px;
+  height: 130px;
+}
+.cloud-one {
+  top: 165px;
+}
+.cloud-two {
+  top: 290px;
+}
+body:is(
+  [data-scene="overcast"],
+  [data-scene="rain"],
+  [data-scene="drizzle"],
+  [data-scene="fog"],
+  [data-scene="unknown"]
+) {
+  --sky-top: #526b83;
+  --sky-mid: #8ca3b5;
+  --sky-low: #677f8a;
+}
+body:is(
+    [data-scene="overcast"],
+    [data-scene="rain"],
+    [data-scene="drizzle"],
+    [data-scene="storm"],
+    [data-scene="fog"],
+    [data-scene="unknown"]
+  )
+  .orb {
+  display: none;
+}
+body:is(
+    [data-scene="overcast"],
+    [data-scene="rain"],
+    [data-scene="drizzle"],
+    [data-scene="storm"]
+  )
+  .cloud {
+  width: 760px;
+  height: 190px;
+  opacity: 0.27;
+}
+body[data-scene="storm"] {
+  --sky-top: #252e43;
+  --sky-mid: #4b5c74;
+  --sky-low: #3a4d61;
+  --cloud-color: #95a2b6;
+}
+body[data-scene="snow"] {
+  --sky-top: #5e789e;
+  --sky-mid: #a2bbcf;
+  --sky-low: #d0dce3;
+}
+body[data-scene="snow"] .orb {
+  opacity: 0.22;
+  filter: blur(12px);
+}
+body[data-phase="night"] {
+  --sky-top: #090f25;
+  --sky-mid: #1b294c;
+  --sky-low: #384461;
+  --cloud-color: #617291;
+}
+body[data-phase="night"][data-scene="storm"] {
+  --sky-top: #090e1b;
+  --sky-mid: #202638;
+  --sky-low: #34374e;
+}
+body[data-phase="night"][data-scene="fog"] {
+  --sky-top: #242f43;
+  --sky-mid: #43566b;
+  --sky-low: #687889;
+}
+body[data-phase="night"] .orb {
+  width: 49px;
+  height: 49px;
+  background: #e3e9f8;
+  box-shadow: 0 0 45px 9px #bdd1ff24;
+  opacity: 0.9;
+}
+body[data-phase="sunrise"] {
+  --sky-top: #565785;
+  --sky-mid: #ca929e;
+  --sky-low: #f5c49c;
+  --cloud-color: #f4d9df;
+}
+body[data-phase="sunset"] {
+  --sky-top: #414b7d;
+  --sky-mid: #b77492;
+  --sky-low: #f4aa7b;
+  --cloud-color: #efbacb;
+}
+body:is([data-phase="sunrise"], [data-phase="sunset"]) .orb {
+  top: 205px;
+  width: 56px;
+  height: 56px;
+  background: #ffe7ae;
+  box-shadow: 0 0 65px 25px #ffcc7c60;
+}
+.horizon-glow {
+  position: absolute;
+  inset: 28% -25% 15%;
+  background: radial-gradient(ellipse, #ffcf924a, transparent 65%);
+  opacity: 0;
+}
+body:is([data-phase="sunrise"], [data-phase="sunset"]) .horizon-glow {
+  opacity: 1;
+}
+body[data-scene="storm"] .horizon-glow {
+  opacity: 0.12;
+}
+.stars {
+  position: absolute;
+  inset: 0 0 40%;
+  opacity: 0;
+  background-image:
+    radial-gradient(circle at 12% 21%, #ffffffae 0 1px, transparent 1.5px),
+    radial-gradient(circle at 63% 14%, #ffffff88 0 1px, transparent 1.5px),
+    radial-gradient(circle at 37% 33%, #ffffff77 0 1px, transparent 1.5px),
+    radial-gradient(circle at 86% 46%, #ffffffbb 0 1px, transparent 1.5px);
+  background-size:
+    190px 210px,
+    270px 280px,
+    330px 310px,
+    240px 250px;
+}
+body[data-phase="night"][data-scene="clear"] .stars {
+  opacity: 0.8;
+}
+body[data-phase="night"][data-scene="partly-cloudy"] .stars {
+  opacity: 0.35;
+}
+body:is([data-scene="rain"], [data-scene="drizzle"], [data-scene="storm"])
+  .precipitation {
+  opacity: var(--drop-opacity);
+  background-image: linear-gradient(
+    102deg,
+    transparent 48.9%,
+    #d1e8fa 49.5% 50%,
+    transparent 50.6%
+  );
+  background-size: var(--drop-size);
+  animation: rainfall var(--drop-speed) linear infinite;
+  transform: rotate(8deg);
+}
+body[data-intensity="light"] {
+  --drop-opacity: 0.16;
+  --drop-size: 115px 115px;
+  --drop-speed: 2.1s;
+}
+body[data-intensity="heavy"] {
+  --drop-opacity: 0.4;
+  --drop-size: 36px 220px;
+  --drop-speed: 0.85s;
+}
+body[data-scene="drizzle"] {
+  --drop-opacity: 0.16;
+  --drop-size: 85px 50px;
+  --drop-speed: 2.6s;
+}
+body[data-scene="drizzle"][data-intensity="heavy"] {
+  --drop-opacity: 0.28;
+  --drop-size: 45px 60px;
+}
+body[data-scene="storm"] {
+  --drop-opacity: 0.33;
+  --drop-size: 43px 210px;
+  --drop-speed: 1s;
+}
+body[data-scene="snow"] .precipitation {
+  opacity: 0.55;
+  background-image:
+    radial-gradient(circle, #fff 1.5px, transparent 3px),
+    radial-gradient(circle, #fff 1px, transparent 2px);
+  background-size:
+    63px 89px,
+    107px 131px;
+  animation: snow 14s linear infinite;
+}
+body[data-scene="snow"][data-intensity="light"] .precipitation {
+  opacity: 0.4;
+  background-size:
+    107px 131px,
+    157px 179px;
+  animation-duration: 20s;
+}
+body[data-scene="snow"][data-intensity="heavy"] .precipitation {
+  opacity: 0.75;
+  background-size:
+    38px 59px,
+    71px 89px;
+  animation-duration: 9s;
+}
+body[data-frozen="true"] .hills-front {
+  background: linear-gradient(150deg, #b6cee466, #304554);
+}
+body[data-hail="true"] .precipitation::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, #dbeaff 1.5px, transparent 2.5px);
+  background-size: 61px 79px;
+  animation: snow 3s linear infinite;
+}
+body[data-scene="fog"] .cloud {
+  width: 900px;
+  height: 260px;
+  opacity: 0.55;
+  filter: blur(45px);
+}
+body[data-scene="fog"] .hills {
+  opacity: 0.2;
+}
+body[data-scene="unknown"] .cloud {
+  opacity: 0.1;
+}
+body[data-phase="night"] .hills {
+  filter: brightness(0.55);
+}
+.day > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.day > span:nth-child(2):hover {
+  white-space: normal;
+}
+@keyframes rainfall {
+  to {
+    background-position: -35px 220px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-scene] .precipitation,
+  body[data-scene] .precipitation::after,
+  body[data-scene] .cloud {
+    animation: none !important;
+  }
+}
+/* Local astronomical moon phase; the background only shows it above the horizon. */
+#sky-moon {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+body[data-phase="night"] .orb {
+  background: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 0 13px #d7e5ff25);
+}
+body[data-phase="night"] #sky-moon {
+  display: block;
+}
+body[data-phase="night"][data-moon-up="false"] .orb {
+  display: none;
+}
+body[data-phase="night"][data-scene="partly-cloudy"] .orb {
+  opacity: 0.55;
+}
+body[data-phase="night"][data-scene="snow"] .orb {
+  opacity: 0.15;
+  filter: blur(2px);
+}
+.moon-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  margin-top: 10px;
+  border: 1px solid #ffffff22;
+  border-radius: 15px;
+  background: #142d4c52;
+  backdrop-filter: blur(20px);
+}
+#moon-disc {
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+.moon-card .eyebrow {
+  font-size: 9px;
+  margin: 0 0 3px;
+  letter-spacing: 1px;
+}
+.moon-card strong {
+  font-weight: 500;
+  font-size: 13px;
+}
+#moon-detail {
+  font-size: 10px;
+  color: #ffffffb5;
+  margin: 3px 0 0;
+}
+#moon-horizon {
+  white-space: pre-line;
+  margin-left: auto;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #ffffffad;
+  text-align: right;
+}
+header {
+  height: 43px;
+}
+.place-row {
+  padding-top: 3px;
+}
+#temperature {
+  font-size: 66px;
+  line-height: 1.03;
+}
+.metrics {
+  margin: 8px 0 11px;
+}
+.light-card {
+  padding: 11px 15px;
+}
+.light-card svg {
+  height: 65px;
+}
+.sun-times strong {
+  font-size: 19px;
+}
+#next-event {
+  margin-top: 7px;
+}
+.outlook {
+  padding-top: 10px;
+}
+.day {
+  padding: 6px 0;
+}
+#status {
+  margin-top: 7px;
+}
+body[data-phase="night"] .stars {
+  filter: drop-shadow(0 0 1px #dde7ff40);
+}
+.icon-definitions {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.event-icon {
+  display: block;
+  width: 27px;
+  height: 23px;
+}
+.card-head {
+  min-height: 23px;
+}
+.forecast-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.day {
+  grid-template-columns: 40px minmax(0, 1fr) 20px 29px 71px;
+  gap: 6px;
+}
+.day > span:nth-child(2) {
+  min-width: 0;
+}
+#arc-marker {
+  transition: transform 2s linear;
+}
+.light-card svg {
+  overflow: visible;
+}
+.card-head .event-icon {
+  height: 23px;
+  width: 27px;
+  margin: 0;
+}
+#arc-marker circle {
+  filter: drop-shadow(0 0 3px #ffd77750);
+}
+@media (prefers-reduced-motion: reduce) {
+  #arc-marker {
+    transition: none;
+  }
+}
+.day {
+  padding: 4px 0;
+}
+.card-head {
+  min-height: 20px;
+}
+.card-head .event-icon {
+  height: 20px;
+  width: 24px;
+}
+.moon-card {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.outlook {
+  margin-top: 8px;
+}
+footer {
+  font-size: 8px;
+}
+#arc-marker {
+  transform-box: view-box;
+  transform-origin: 0 0;
+}

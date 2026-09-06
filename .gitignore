@@ -1,0 +1,9 @@
+node_modules/
+dist/
+Geometry.exe
+*.zip
+*.log
+*.previous
+qa-*/
+settings.json
+Source.zip

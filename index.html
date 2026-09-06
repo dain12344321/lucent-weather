@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://opengeo.ncep.noaa.gov; connect-src https://opengeo.ncep.noaa.gov"
+    />
+    <meta name="theme-color" content="#172f54" />
+    <title>Lucent Weather</title>
+    <link rel="stylesheet" href="atmosphere.css" />
+    <link rel="stylesheet" href="scenes.css" />
+    <link rel="stylesheet" href="typography.css" />
+    <link rel="stylesheet" href="hourly.css" />
+<link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="refinement.css" />
+  </head>
+  <body data-weather="clear">
+    <div class="atmosphere" aria-hidden="true">
+      <div class="stars"></div>
+      <div class="orb">
+        <canvas id="sky-moon" width="128" height="128"></canvas>
+      </div>
+      <div class="horizon-glow"></div>
+      <div class="cloud cloud-one"></div>
+      <div class="cloud cloud-two"></div>
+      <div class="precipitation"></div>
+      <div class="hills hills-back"></div>
+      <div class="hills hills-front"></div>
+    </div>
+    <header>
+      <div class="brand">
+        <span class="sun-dot"></span>LUCENT <span class="muted">/ WEATHER</span>
+      </div>
+      <div class="actions">
+        <button id="settings" type="button" title="Change location">⌖ Location</button
+        ><button id="close" type="button" title="Close forecast" aria-label="Close forecast">
+          ×
+        </button>
+      </div>
+    </header>
+    <svg class="icon-definitions" aria-hidden="true">
+      <defs>
+        <symbol id="sunny" viewBox="0 0 28 28">
+          <g stroke="#f8c659" stroke-width="1.7" stroke-linecap="round">
+            <path
+              d="M14 2v3m0 18v3M2 14h3m18 0h3M5.5 5.5l2.1 2.1m12.8 12.8 2.1 2.1m0-17-2.1 2.1M7.6 20.4l-2.1 2.1"
+            />
+            <circle cx="14" cy="14" r="6" fill="#ffda72" />
+          </g>
+        </symbol>
+        <symbol id="cloudy" viewBox="0 0 28 28">
+          <path
+            d="M7 21a5 5 0 0 1-1-9.9A7.5 7.5 0 0 1 20.5 10a5.5 5.5 0 0 1 .5 11Z"
+            fill="#d6e0ea"
+          />
+          <path d="M8 21h13" stroke="#a4b8cc" stroke-width="1.2" />
+        </symbol>
+        <symbol id="rainy" viewBox="0 0 28 28">
+          <path
+            d="M7 17a4 4 0 0 1-1-7.8A6.4 6.4 0 0 1 18.5 8a4.5 4.5 0 0 1 2 9Z"
+            fill="#c6d5e2"
+          />
+          <path
+            d="m8 21-1 3m7-3-1 3m7-3-1 3"
+            stroke="#7fc9f5"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="moon" viewBox="0 0 28 28">
+          <path d="M21 20A10 10 0 0 1 9 5a10 10 0 1 0 12 15Z" fill="#e1e5f5" />
+          <circle cx="21" cy="6" r="1.2" fill="#eee6c8" />
+        </symbol>
+        <symbol id="snowy" viewBox="0 0 28 28">
+          <g stroke="#b6e3ff" stroke-width="1.7" stroke-linecap="round">
+            <path
+              d="M14 3v22M4.5 8.5l19 11M4.5 19.5l19-11M10.5 5l3.5 3 3.5-3m-7 18 3.5-3 3.5 3M5 12l4.5-.5L8 7m12 14-1.5-4.5L23 16M8 21l1.5-4.5L5 16m18-4-4.5-.5L20 7"
+            />
+          </g>
+        </symbol>
+        <symbol id="stormy" viewBox="0 0 28 28">
+          <path
+            d="M6 17a4 4 0 0 1 0-8 7 7 0 0 1 13-1 5 5 0 0 1 2 9Z"
+            fill="#b5c4d5"
+          />
+          <path d="m14 13-4 8h4l-1 6 7-10h-5l3-4" fill="#ffcd66" />
+        </symbol>
+        <symbol id="foggy" viewBox="0 0 28 28">
+          <path
+            d="M4 9h20M2 14h20M6 19h20"
+            stroke="#ccd9e0"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+        </symbol>
+      </defs>
+    </svg>
+    <main tabindex="-1">
+      <section id="setup">
+        <p class="eyebrow">YOUR CORNER OF THE WORLD</p>
+        <h1>Follow the light.</h1>
+        <p class="intro">
+          Weather, sunrise and sunset.<br />A little closer to your day.
+        </p>
+        <form id="search-form">
+          <label for="query">City or postal code</label>
+          <div class="search">
+            <input
+              id="query"
+              value=""
+              maxlength="120"
+              placeholder="Search for a place"
+              autocomplete="off"
+              spellcheck="false"
+              enterkeyhint="search"
+              aria-describedby="status"
+              required
+              minlength="2"
+            /><button id="search-button" type="submit">Search</button>
+          </div>
+        </form>
+        <div class="units">
+          <label for="unit">Temperature</label
+          ><select id="unit">
+            <option value="F">Fahrenheit · °F</option>
+            <option value="C">Celsius · °C</option>
+          </select>
+        </div>
+        <div id="results" aria-live="polite"></div>
+        <button id="cancel" type="button" class="quiet" hidden>Back to weather</button>
+      </section>
+      <section id="forecast" hidden>
+        <div class="weather-page" id="now-page"><div class="place-row">
+          <div>
+            <p class="eyebrow" id="date"></p>
+            <h1 id="place"></h1>
+            <p id="region" class="muted"></p>
+          </div>
+          <button
+            id="refresh"
+            type="button"
+            title="Refresh weather"
+            aria-label="Refresh weather"
+          >
+            ↻
+          </button>
+        </div>
+        <div class="current">
+          <span id="temperature">—</span>
+          <div>
+            <div id="condition"></div>
+            <div class="muted" id="feels"></div>
+          </div>
+        </div>
+        <div class="metrics">
+          <span id="wind"></span><span id="humidity"></span>
+        </div>
+        <section class="hourly-card" aria-labelledby="hourly-title">
+          <div class="card-head">
+            <span id="hourly-title">NEXT 24 HOURS</span><span id="hourly-range"></span>
+          </div>
+          <p id="hourly-summary"></p>
+          <div id="hours" role="listbox" aria-label="Choose a forecast hour"></div>
+          <div id="hour-detail" role="status" aria-live="polite"></div>
+        </section>
+        <section class="light-card" aria-label="Daylight and moon details">
+          <div class="card-head">
+            <span id="light-title" aria-live="polite"></span
+            ><span id="daylength"></span>
+          </div>
+          <svg viewBox="0 0 340 145" aria-label="Daylight progress">
+            <defs>
+              <linearGradient id="glow">
+                <stop stop-color="#c47e52" />
+                <stop offset=".5" stop-color="#f7dca0" />
+                <stop offset="1" stop-color="#c47e52" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M20 125 Q170 -75 320 125"
+              fill="none"
+              stroke="#33434a"
+              stroke-width="2"
+            />
+            <path
+              d="M20 125 Q170 -75 320 125"
+              fill="none"
+              stroke="url(#glow)"
+              stroke-width="3"
+              stroke-dasharray="3 6"
+            />
+            <line x1="12" y1="125" x2="328" y2="125" stroke="#44504e" />
+            <g id="arc-marker">
+              <circle id="sun" r="7" fill="#f5d799" />
+              <path
+                id="arc-moon"
+                d="M3 -9 A9 9 0 1 0 3 9 A7 9 0 0 1 3 -9"
+                fill="#e4eafb"
+              />
+            </g>
+            <text
+              id="sun-caption"
+              x="170"
+              y="108"
+              text-anchor="middle"
+              fill="#ddd2b9"
+              font-size="12"
+            ></text>
+          </svg>
+          <div class="sun-times">
+            <div>
+              <span class="muted">SUNRISE</span><strong id="sunrise"></strong>
+            </div>
+            <div class="right">
+              <span class="muted">SUNSET</span><strong id="sunset"></strong>
+            </div>
+          </div>
+          <p id="next-event"></p>
+<div id="solar-detail"></div>
+        <div class="moon-card" id="night-details" aria-label="Moon phase">
+          <canvas
+            id="moon-disc"
+            width="128"
+            height="128"
+            aria-label="Current moon phase"
+          ></canvas>
+          <div>
+            <p class="eyebrow">THE MOON</p>
+            <strong id="moon-name">—</strong>
+            <p id="moon-detail"></p>
+          </div>
+          <span id="moon-horizon"></span>
+        </div>
+<div class="environment"><span id="uv"></span><span id="air-quality" title="Modeled US AQI from CAMS, not a nearby sensor"></span></div>
+        </section>
+<button class="page-link" id="to-outlook" type="button">Radar & seven days ↓</button></div>
+<div class="weather-page" id="outlook-page"><div class="card-head"><span>YOUR LOCAL OUTLOOK</span><button class="page-link" id="to-now" type="button">↑ Now</button></div>
+<section class="radar-card" aria-labelledby="radar-title"><h2 id="radar-title" class="visually-hidden">Local precipitation radar</h2><div id="radar-map" role="application" aria-label="Local precipitation radar map"></div><div class="radar-controls"><button id="radar-play" type="button">Play</button><label class="visually-hidden" for="radar-time">Radar frame</label><input id="radar-time" type="range" min="0" max="0" value="0" aria-label="Radar frame"/><button id="radar-refresh" type="button" aria-label="Refresh radar">↻</button></div><p id="radar-status" role="status" aria-live="polite">Scroll here to load radar</p><div class="radar-legend">Reflectivity · light <span></span> heavy · NOAA/NWS</div></section>
+        <section class="outlook">
+          <p class="eyebrow">SEVEN DAYS AHEAD</p>
+          <div id="days" aria-live="polite"></div>
+        </section>
+</div>      </section>
+      <p id="status" role="status" aria-live="polite"></p>
+      <footer>
+        Weather: Open-Meteo · Air: CAMS / Open-Meteo · CC BY 4.0<br />Refreshes every 15 min
+        · Right-click taskbar widget to quit
+      </footer>
+    </main>
+    <script src="solar.js"></script>
+    <script src="suncalc.js"></script>
+    <script src="lunar.js"></script>
+    <script src="daylight.js"></script>
+    <script src="hourly.js"></script>
+    <script src="node_modules/leaflet/dist/leaflet.js"></script>
+<script src="radar.js"></script>
+<script src="renderer.js"></script>
+  </body>
+</html>

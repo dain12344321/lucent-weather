@@ -1,0 +1,75 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+button {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #f7f7f7;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+button:hover,
+button:focus-visible {
+  background: #ffffff12;
+  border-color: #ffffff0d;
+  outline: none;
+}
+#icon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: block;
+}
+.words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0;
+}
+strong {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 16px;
+}
+#detail {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  color: #e5e5e5;
+}
+@media (prefers-color-scheme: light) {
+  button {
+    color: #171717;
+  }
+  #detail {
+    color: #333;
+  }
+  button:hover {
+    background: #0000000a;
+  }
+}
+
+/* Reset stale native-menu hover without moving or refocusing the window. */
+button.menu-dismissed:hover,
+button.menu-dismissed:focus-visible {
+  background: transparent;
+  border-color: transparent;
+}
