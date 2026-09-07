@@ -1,6 +1,6 @@
 main { padding:0 20px; scroll-snap-type:y mandatory; }
 .weather-page { min-height:calc(100vh - 64px); scroll-snap-align:start; scroll-snap-stop:always; padding:0 0 12px; }
-#now-page { display:flex; flex-direction:column; gap:8px; }
+#now-page { display:flex; flex-direction:column; gap:6px; }
 .current { display:flex; justify-content:center; align-items:center; gap:18px; text-align:left; margin:0; }
 #temperature { font-size:66px; letter-spacing:-3px; }
 .metrics { margin:0; }

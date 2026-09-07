@@ -1,6 +1,6 @@
 function createVisibilityGate(options = {}) {
   const hideSamples = Math.max(1, options.hideSamples ?? 2);
-  const showSamples = Math.max(1, options.showSamples ?? 1);
+  const showSamples = Math.max(1, options.showSamples ?? 2);
   let state = "unknown";
   let hidden = 0;
   let shown = 0;

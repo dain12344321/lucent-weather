@@ -11,14 +11,14 @@ const staging = require("./scripts/stage-release.cjs");
 
 test("release metadata is pinned to the Lucent Weather portable contract", () => {
   assert.equal(packageJson.name, "lucent-weather");
-  assert.equal(packageJson.version, "0.9.0");
+  assert.equal(packageJson.version, "0.9.1");
   assert.equal(packageJson.devDependencies["@electron/packager"], "20.3.0");
   assert.equal(packageJson.devDependencies["@resvg/resvg-js"], "2.6.2");
   assert.match(packageJson.scripts.test, /test\.cjs/);
   assert.match(packageJson.scripts["build:release"], /stage-release/);
   assert.equal(packaging.portableName, "LucentWeather-win32-x64");
   assert.deepEqual(packaging.ELECTRON_LANGUAGES, ["en-US", "en-GB"]);
-  assert.equal(staging.releaseName, "LucentWeather-v0.9.0-Windows-x64");
+  assert.equal(staging.releaseName, "LucentWeather-v0.9.1-Windows-x64");
   assert.deepEqual(staging.WINDOWS_FILES, [
     "Install-LucentWeather.cmd",
     "Install-LucentWeather.ps1",

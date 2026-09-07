@@ -4,6 +4,7 @@ const {createVisibilityGate} = require("./visibility");
 
 test("visibility gate filters one-sample shell transitions", () => {
   const gate = createVisibilityGate({hideSamples: 2});
+  assert.equal(gate.observe(true).action, null);
   assert.equal(gate.observe(true).action, "show");
   assert.equal(gate.observe(false, "taskbar-covered").action, null);
   assert.equal(gate.state, "shown");
@@ -32,4 +33,17 @@ test("reset clears stale samples after helper restart", () => {
   assert.deepEqual(gate.samples, {hidden: 0, shown: 0});
   assert.equal(gate.observe(false, "taskbar-hidden").action, null);
   assert.equal(gate.observe(false, "taskbar-hidden").action, "hide");
+});
+
+
+test("default gate rejects repeated one-sample exposure flashes while covered", () => {
+  const gate = createVisibilityGate();
+  gate.observe(false); gate.observe(false);
+  for (let i=0;i<20;i++) {
+    assert.equal(gate.observe(true).action, null);
+    assert.equal(gate.observe(false).action, null);
+    assert.equal(gate.state, "hidden");
+  }
+  assert.equal(gate.observe(true).action, null);
+  assert.equal(gate.observe(true).action, "show");
 });

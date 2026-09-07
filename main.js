@@ -201,10 +201,6 @@ function observeTaskbar() {
         if (transition.action === "hide" && dock.isVisible()) dock.hide();
         if (!decision.shown) continue;
         if (primaryVisibility.state === "shown" && !dock.isVisible()) dock.showInactive();
-        if (g.taskbarAbove && !win.isVisible()) {
-          // Geometry raises the tile with SWP_NOACTIVATE; never steal focus here.
-          log("restored-above-taskbar");
-        }
       } catch (e) {
         log("observer-sample-error", { message: e.message });
       }

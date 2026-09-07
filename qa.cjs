@@ -261,6 +261,11 @@ module.exports = async function runQA(ctx) {
           await sleep(100);
           assert.equal(dock.isVisible(), true);
         }
+        // Keep our own foreground panel open: closing the final cycle can
+        // reactivate a fullscreen app, where a recovered tile must stay hidden.
+        show();
+        await sleep(1500);
+        assert.equal(dock.isVisible(), true, "Taskbar exposed before recovery checks");
         dock.webContents.forcefullyCrashRenderer();
         await sleep(2000);
         assert.equal(dock.webContents.isCrashed(), false);
@@ -276,6 +281,30 @@ module.exports = async function runQA(ctx) {
         await sleep(3200);
         assert.ok(diagnostics().helperPid && diagnostics().helperPid !== helperBefore, "Primary helper restarts after exit");
         assert.equal(dock.isVisible(), true, "Primary tile returns after helper recovery");
+        const stabilityChecks = [];
+        setScreens("all");
+        await sleep(2500);
+        for (const tile of BrowserWindow.getAllWindows().filter(w => w !== win)) {
+          const overlay = new BrowserWindow({show:false, frame:false, transparent:true, skipTaskbar:true, focusable:false, webPreferences:{sandbox:true}});
+          let hides = 0;
+          const onHide = () => hides++;
+          try {
+            await overlay.loadURL("data:text/html,<body style='margin:0;background:transparent'></body>");
+            overlay.setBounds(tile.getBounds());
+            overlay.setIgnoreMouseEvents(true);
+            overlay.setAlwaysOnTop(true, "screen-saver");
+            overlay.showInactive();
+            tile.moveTop();
+            tile.on("hide", onHide);
+            for (let i=0;i<24;i++) {
+              await sleep(250);
+              assert.equal(tile.isVisible(), true, "Click-through overlay must not cause taskbar flashing");
+            }
+            assert.equal(hides, 0, "No hide/show oscillation behind click-through overlay");
+            stabilityChecks.push({bounds:tile.getBounds(),samples:24,hides});
+          } finally { tile.removeListener("hide", onHide); overlay.destroy(); }
+        }
+        fs.writeFileSync(path.join(qa,"taskbar-stability-tests.json"),JSON.stringify(stabilityChecks,null,2));
         const fullscreenChecks = [];
         setScreens("all");
         await sleep(2500);
@@ -294,6 +323,7 @@ module.exports = async function runQA(ctx) {
             await mock.loadURL("data:text/html," + encodeURIComponent('<html><body style="margin:0;background:#102039;color:white;font:24px sans-serif"><canvas id="c" width="640" height="360" hidden></canvas><video id="v" autoplay muted style="width:100%;height:100%;object-fit:contain"></video></body></html>'));
             mock.setBounds({x:display.bounds.x+40,y:display.bounds.y+40,width:640,height:400});
             mock.show();
+            mock.focus();
             await Promise.race([mock.webContents.executeJavaScript(`(async()=>{
               const c=document.getElementById('c'), x=c.getContext('2d'), v=document.getElementById('v');
               let n=0; setInterval(()=>{x.fillStyle='#102039';x.fillRect(0,0,640,360);x.fillStyle='#ffdb7b';x.fillRect((n++*5)%640,100,80,80);x.fillStyle='white';x.font='24px sans-serif';x.fillText('Lucent Weather fullscreen video verification',35,270);},80);

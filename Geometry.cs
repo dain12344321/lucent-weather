@@ -11,14 +11,15 @@ class Geometry {
  [StructLayout(LayoutKind.Sequential)] struct Rect { public int Left, Top, Right, Bottom; }
  [StructLayout(LayoutKind.Sequential)] struct Point { public int X, Y; }
 
- const uint GA_ROOT=2, GW_HWNDNEXT=2, GW_HWNDPREV=3, DWMWA_CLOAKED=14;
+ const uint GA_ROOT=2, GW_HWNDNEXT=2, GW_HWNDPREV=3, DWMWA_CLOAKED=14, DWMWA_EXTENDED_FRAME_BOUNDS=9;
  const uint SWP_NOSIZE=0x0001, SWP_NOMOVE=0x0002, SWP_NOACTIVATE=0x0010;
  const uint SWP_NOOWNERZORDER=0x0200, SWP_NOSENDCHANGING=0x0400;
  static readonly IntPtr HWND_TOPMOST=new IntPtr(-1);
 
  [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern IntPtr FindWindow(string c,string t);
  [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern IntPtr FindWindowEx(IntPtr parent,IntPtr after,string c,string t);
- [DllImport("user32.dll")] static extern IntPtr WindowFromPoint(Point p);
+ [DllImport("user32.dll")] static extern IntPtr GetTopWindow(IntPtr h);
+ [DllImport("user32.dll",EntryPoint="GetWindowLongW")] static extern int GetWindowLong(IntPtr h,int index);
  [DllImport("user32.dll")] static extern IntPtr GetAncestor(IntPtr h,uint flags);
  [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h,out Rect r);
  [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
@@ -27,6 +28,7 @@ class Geometry {
  [DllImport("user32.dll")] static extern IntPtr GetWindow(IntPtr h,uint command);
  [DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
  [DllImport("dwmapi.dll")] static extern int DwmGetWindowAttribute(IntPtr h,uint attribute,out int value,uint size);
+ [DllImport("dwmapi.dll")] static extern int DwmGetWindowAttribute(IntPtr h,uint attribute,out Rect value,uint size);
  [DllImport("user32.dll")] static extern bool SetProcessDPIAware();
  [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h,IntPtr after,int x,int y,int width,int height,uint flags);
  [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern int GetClassName(IntPtr h,StringBuilder s,int n);
@@ -54,15 +56,13 @@ class Geometry {
  }
  static bool UsableAt(IntPtr h,Point p){
   if(h==IntPtr.Zero||!IsWindowVisible(h)||IsIconic(h)||IsCloaked(h))return false;
-  Rect r;return GetWindowRect(h,out r)&&Contains(r,p);
- }
- static IntPtr BelowWidget(IntPtr widget,Point p){
-  IntPtr candidate=GetWindow(widget,GW_HWNDNEXT);
-  for(int i=0;i<128&&candidate!=IntPtr.Zero;i++){
-   if(candidate!=widget&&UsableAt(candidate,p))return candidate;
-   candidate=GetWindow(candidate,GW_HWNDNEXT);
-  }
-  return IntPtr.Zero;
+  // Click-through overlays must not alternately obscure the tile and disappear
+  // from hit testing when the tile hides. Exclude invisible resize borders too.
+  if((GetWindowLong(h,-20)&0x20)!=0)return false; // WS_EX_TRANSPARENT
+  Rect r;
+  if(DwmGetWindowAttribute(h,DWMWA_EXTENDED_FRAME_BOUNDS,out r,16)!=0 || r.Right<=r.Left || r.Bottom<=r.Top)
+   if(!GetWindowRect(h,out r))return false;
+  return Contains(r,p);
  }
  static string RawClassName(IntPtr h){
   if(h==IntPtr.Zero)return "";
@@ -80,13 +80,14 @@ class Geometry {
  }
  static bool TaskbarHit(IntPtr taskbar,IntPtr widget,IntPtr foreground,Point p){
   if(ForegroundCovers(taskbar,widget,foreground,p))return false;
-  IntPtr hit=WindowFromPoint(p);
-  if(BelongsTo(hit,taskbar))return true;
-  // The tile is topmost, so a self hit says nothing about the window below it.
-  // Walk down the z-order and accept only a taskbar window at this point. This
-  // catches normal Chromium HTML fullscreen windows that sit below the tile.
-  if(!BelongsTo(hit,widget))return false;
-  return BelongsTo(BelowWidget(widget,p),taskbar);
+  // Use exactly the same probe whether the tile is shown or hidden. Mixing
+  // WindowFromPoint with rectangle walking made visibility depend on itself.
+  IntPtr candidate=GetTopWindow(IntPtr.Zero);
+  for(int i=0;i<512&&candidate!=IntPtr.Zero;i++){
+   if(candidate!=widget&&UsableAt(candidate,p))return BelongsTo(candidate,taskbar);
+   candidate=GetWindow(candidate,GW_HWNDNEXT);
+  }
+  return false;
  }
  static bool IsAbove(IntPtr window,IntPtr target){
   IntPtr above=GetWindow(window,GW_HWNDPREV);

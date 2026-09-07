@@ -67,7 +67,7 @@ module.exports = function secondaryWidgets(getConfig, getLast, getPanel, log) {
       lastAt: Date.now(),
       taskbarExposed: false,
       visibilityReason: "unobserved",
-      gate: createVisibilityGate({hideSamples: 2, showSamples: 1}),
+      gate: createVisibilityGate(),
     };
     entries.set(id, entry);
 

@@ -1,3 +1,18 @@
+# Lucent Weather v0.9.1
+
+- Fix taskbar tile hide/show feedback by using the same native obstruction check while visible and hidden.
+- Ignore click-through overlays and invisible resize borders when checking taskbar coverage.
+- Require consecutive exposed samples on both monitors to suppress transient flashes, while retaining fullscreen hiding and recovery.
+- Remove misleading repeated taskbar recovery log entries.
+- Fix a sunrise/night-card spacing overflow that clipped the bottom navigation.
+- Preserve existing location, units, placement and startup settings.
+
+Validation: 36 automated tests pass. Native Windows QA passes live weather/radar, layout, lunar/scenes/hourly checks, placement, five open/close cycles, renderer/helper recovery, and HTML video plus borderless fullscreen hide/return on both monitors. Click-through overlay stability: 24 samples per monitor, zero tile hides. Installed executable, app.asar and native helper hashes match the release payload. Settings are unchanged.
+
+Download **LucentWeather-v0.9.1-Windows-x64.zip** and extract the complete runtime.
+
+---
+
 # Lucent Weather v0.9.0
 
 ClearWeather is now **Lucent Weather**. Existing location, unit and taskbar preferences are preserved.
