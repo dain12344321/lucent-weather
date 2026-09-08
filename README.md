@@ -1,12 +1,12 @@
-# Lucent Weather 0.9.1
+# Lucent Weather 0.9.3
 
 A weather and daylight companion for Windows 11. A small taskbar tile opens a weather-responsive forecast, hourly outlook, sun/moon card, and radar.
 
-Patch 0.9.1 fixes taskbar visibility feedback, filters transient exposure on both monitors, and corrects a small forecast layout overflow. Native overlay, recovery and fullscreen checks pass on both monitors.
+Patch 0.9.3 keeps the taskbar tile visible during ordinary window overlap, maximized desktop use and window switching. A full-monitor app covering the taskbar suppresses it even when a dialog takes focus.
 
 ## Download and run
 
-Download **LucentWeather-v0.9.1-Windows-x64.zip** from [GitHub Releases](https://github.com/dain12344321/lucent-weather/releases). Extract the complete ZIP to a permanent folder and double-click **LucentWeather.exe**. No installer, account, API key, Node.js, or WSL is needed to run it. Keep the runtime files, `locales`, and `resources` beside the executable.
+Download **LucentWeather-v0.9.3-Windows-x64.zip** from [GitHub Releases](https://github.com/dain12344321/lucent-weather/releases). Extract the complete ZIP to a permanent folder and double-click **LucentWeather.exe**. No installer, account, API key, Node.js, or WSL is needed to run it. Keep the runtime files, `locales`, and `resources` beside the executable.
 
 The optional `Install-LucentWeather.cmd` copies the app to a location you choose and can create shortcuts. See [distribution instructions](LUCENTWEATHER-DISTRIBUTION.md). GitHub **Code → Download ZIP** contains source code; use the release asset for Windows.
 
@@ -27,7 +27,7 @@ The optional `Install-LucentWeather.cmd` copies the app to a location you choose
 
 Click a tile to open the forecast on that display. Click outside, press Escape, or use the close button to dismiss it. Right-click a tile or the notification icon to refresh, choose placement/screens, or quit. The tray temperature is a fallback entry point.
 
-The tile uses 204 × 44 device-independent pixels. It overlays available space beside the system tray or at the left corner; it does not reserve space from other taskbar buttons. It follows the visible taskbar and hides when its location is covered, including fullscreen video. A secondary display needs Windows' taskbar-on-all-displays option. Horizontal Windows 11 taskbars are the supported layout; shell replacements and unusual taskbar customizations need their own verification.
+The tile uses 204 × 44 device-independent pixels. It overlays available space beside the system tray or at the left corner; it does not reserve space from other taskbar buttons. It follows the visible taskbar and stays present when ordinary windows overlap it. It hides while a full-monitor app covers that taskbar, including when another dialog takes focus, and returns when the taskbar is exposed. A secondary display needs Windows' taskbar-on-all-displays option. Horizontal Windows 11 taskbars are the supported layout; shell replacements and unusual taskbar customizations need their own verification.
 
 Weather refreshes every 15 minutes and after resuming from sleep if stale. The core forecast, hourly forecast and air-quality requests run concurrently. Missing optional feeds leave current/daily conditions usable. A failed refresh preserves the last in-session forecast with an error label. A failed location change never relabels the previous location's forecast.
 
@@ -71,7 +71,7 @@ Native Windows runtime verification:
 LucentWeather.exe --qa-output=ABSOLUTE_DIRECTORY
 ```
 
-The QA runner uses a separate profile and a public London weather fixture. It verifies layout, hourly/daily/astronomy/scenes, tile placement, renderer recovery, and real HTML video fullscreen plus borderless-player restoration on displays with a taskbar. It produces JSON results and screenshots, and opens short-lived test windows. Internet is required for the weather/radar portion.
+The QA runner uses a separate profile and a public London weather fixture. It verifies layout, hourly/daily/astronomy/scenes, tile placement, renderer recovery, and real HTML video fullscreen plus borderless-player restoration on displays with a taskbar. It produces JSON results and screenshots, and opens short-lived test windows. Internet is required for the weather/radar portion. Add `--qa-taskbar-only` to run offline window-overlap, maximized-window, focus-switching and foreground/background fullscreen checks on every taskbar.
 
 A running normal instance can write a diagnostic snapshot with:
 

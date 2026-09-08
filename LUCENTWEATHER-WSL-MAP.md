@@ -19,7 +19,7 @@ wrappers.
     │   ├── resources/Geometry.exe
     │   └── locales/{en-US,en-GB}.pak
     └── release/
-        └── LucentWeather-v0.9.1-Windows-x64/  ZIP staging root
+        └── LucentWeather-v0.9.3-Windows-x64/  ZIP staging root
 
 C:\Programs\Lucent Weather\               optional Windows install target
 ├── LucentWeather.exe

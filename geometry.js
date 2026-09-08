@@ -31,8 +31,11 @@ function taskbarVisibility(sample, display, options = {}) {
   if (!bar || bar.width < minWidth) return "taskbar-offscreen";
   if (exposedHeight(bar, display) < minHeight) return "taskbar-offscreen";
 
-  // New helpers report the exposure at the tile's actual bounds. Keep the
-  // legacy field as a compatible fallback for older packaged helpers.
+  // Current helpers report only genuine foreground fullscreen coverage.
+  // A normal window overlapping the tile is not a reason to hide it.
+  if (typeof sample.fullscreenBlocked === "boolean")
+    return sample.fullscreenBlocked ? "fullscreen-covered" : "shown";
+  // Compatibility for pre-0.9.2 helpers, never used by a matched release.
   const exposed = sample.widgetExposed ?? sample.taskbarExposed;
   if (!exposed) return "taskbar-covered";
   return "shown";

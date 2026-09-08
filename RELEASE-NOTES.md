@@ -1,3 +1,30 @@
+# Lucent Weather v0.9.3
+
+- Fix weather tiles appearing over fullscreen games when a clipboard dialog or another app takes focus. Full-monitor windows above the taskbar keep the tile hidden until the taskbar is exposed.
+- Preserve stable tiles during ordinary window overlap and maximized desktop use.
+- Ignore stale secondary-helper samples after a tile has been destroyed.
+- Preserve location, units, placement and startup settings.
+
+Validation: 37 automated tests pass. Native regression on the secondary monitor passes 36 ordinary-window samples with zero hides, maximized desktop use, fullscreen/dialog hiding and minimized-fullscreen restoration. The primary monitor remained covered by live WoW: its tile stayed hidden while Firefox/the weather panel had focus; the simulated primary sequence was skipped. No claim of a full two-monitor retest. Installed EXE, app.asar and helper hashes match the release.
+
+---
+
+# Lucent Weather v0.9.2
+
+Fixes the reproduced disappearing-taskbar-tile bug in v0.9.1: an ordinary window overlapping the tile no longer hides it.
+
+- Keep tiles visible during ordinary window overlap, maximized desktop use and focus switching.
+- Hide a tile only for a hidden/offscreen taskbar or a foreground window covering its entire monitor. Switching away from a fullscreen app restores it; other monitors stay visible.
+- Replace arbitrary window-obstruction scans with monitor-based foreground fullscreen detection.
+- Record actual tile transitions and fullscreen reasons in diagnostics.
+- Preserve existing location, units, placement and startup settings.
+
+Validation: 37 automated tests pass. The new native regression fails on v0.9.1 and passes on v0.9.2 on both monitors, with zero unwanted hides across 36 normal-use samples per monitor. The installed Windows executable also passes live weather/radar, layout, menus, lunar/scenes/hourly checks, renderer/helper recovery and HTML video plus borderless fullscreen hiding/restoration on both monitors. Installed EXE, app.asar and Geometry.exe hashes match the release payload; settings are unchanged.
+
+Download **LucentWeather-v0.9.2-Windows-x64.zip** and extract the complete runtime.
+
+---
+
 # Lucent Weather v0.9.1
 
 - Fix taskbar tile hide/show feedback by using the same native obstruction check while visible and hidden.

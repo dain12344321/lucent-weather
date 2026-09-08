@@ -21,6 +21,7 @@ const RUNTIME_FILES = Object.freeze([
   "visibility.js",
   "weather-service.cjs",
   "qa.cjs",
+  "taskbar-qa.cjs",
   "index.html",
   "dock.html",
   "renderer.js",

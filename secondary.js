@@ -65,7 +65,7 @@ module.exports = function secondaryWidgets(getConfig, getLast, getPanel, log) {
       child: null,
       retry: null,
       lastAt: Date.now(),
-      taskbarExposed: false,
+      fullscreenBlocked: false,
       visibilityReason: "unobserved",
       gate: createVisibilityGate(),
     };
@@ -97,7 +97,7 @@ module.exports = function secondaryWidgets(getConfig, getLast, getPanel, log) {
       if (entry.retry) return;
       entry.child = null;
       entry.lastAt = 0;
-      entry.taskbarExposed = false;
+      entry.fullscreenBlocked = false;
       entry.visibilityReason = reason;
       // A helper that cannot produce fresh geometry must never leave a stale
       // tile over a fullscreen window or a recreated Explorer taskbar.
@@ -148,6 +148,7 @@ module.exports = function secondaryWidgets(getConfig, getLast, getPanel, log) {
         const lines = buffer.split("\n");
         buffer = lines.pop();
         for (const line of lines) {
+          if (entry.closed || entry.window.isDestroyed() || app.quitting) return;
           if (!line.trim()) continue;
           try {
             const g = JSON.parse(line);
@@ -155,13 +156,14 @@ module.exports = function secondaryWidgets(getConfig, getLast, getPanel, log) {
             const display = screen.getDisplayMatching(bar);
             const decision = geometryDecision({...g, bar}, display.bounds);
             entry.lastAt = Date.now();
-            entry.taskbarExposed = Boolean(g.widgetExposed ?? g.taskbarExposed);
+            entry.fullscreenBlocked = g.fullscreenBlocked;
             entry.visibilityReason = decision.reason;
             if (g.visible && bar.width >= 400 && bar.height >= 24) {
               const bounds = tileBounds(bar, g.tray ? screen.screenToDipRect(null, g.tray) : null, getConfig().position);
               if (!boundsEqual(bounds, window.getBounds())) window.setBounds(bounds);
             }
             const transition = entry.gate.observe(decision.shown, decision.reason);
+            if (transition.action) log("secondary-tile-transition", {id, action:transition.action, reason:decision.reason, frontClass:g.frontClass});
             if (transition.action === "hide") hide(entry);
             if (!decision.shown || entry.closed || window.isDestroyed()) continue;
             if (entry.gate.state === "shown" && !window.isVisible())
@@ -194,7 +196,7 @@ module.exports = function secondaryWidgets(getConfig, getLast, getPanel, log) {
     diagnostics: () => [...entries.values()].map((entry) => ({
       bounds: entry.window.isDestroyed() ? null : entry.window.getBounds(),
       visible: !entry.window.isDestroyed() && entry.window.isVisible(),
-      taskbarExposed: entry.taskbarExposed,
+      fullscreenBlocked: entry.fullscreenBlocked,
       visibilityReason: entry.visibilityReason,
       visibilityState: entry.gate.state,
       helperPid: entry.child?.pid,

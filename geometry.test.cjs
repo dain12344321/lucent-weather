@@ -45,3 +45,12 @@ test("boundsEqual rejects missing or partial rectangles", () => {
   assert.equal(boundsEqual(a, {...a, width: 5}), false);
   assert.equal(boundsEqual(a, null), false);
 });
+
+
+test("ordinary window overlap cannot hide a tile under the fullscreen-only policy", () => {
+  const bar = {x:0,y:1032,width:1920,height:48};
+  assert.equal(taskbarVisibility({bar,visible:true,fullscreenBlocked:false,widgetExposed:false},display),"shown");
+  assert.equal(taskbarVisibility({bar,visible:true,fullscreenBlocked:true,widgetExposed:true},display),"fullscreen-covered");
+  assert.equal(taskbarVisibility({bar,visible:false,fullscreenBlocked:false},display),"taskbar-hidden");
+  assert.equal(taskbarVisibility({bar:{...bar,y:1079},visible:true,fullscreenBlocked:false},display),"taskbar-offscreen");
+});

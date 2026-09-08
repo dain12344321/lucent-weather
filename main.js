@@ -184,8 +184,7 @@ function observeTaskbar() {
           foreground: f,
           frontClass: g.frontClass,
           taskbarAbove: g.taskbarAbove,
-          taskbarExposed: g.widgetExposed ?? g.taskbarExposed,
-          shellExposed: g.shellExposed,
+          fullscreenBlocked: g.fullscreenBlocked,
         };
         const decision = geometryDecision({...g, bar:r}, b);
         const reason = decision.reason;
@@ -198,6 +197,7 @@ function observeTaskbar() {
           lastDecision = reason;
         }
         const transition = primaryVisibility.observe(decision.shown, reason);
+        if (transition.action) log("tile-transition", {action:transition.action, reason, foreground:f, frontClass:g.frontClass});
         if (transition.action === "hide" && dock.isVisible()) dock.hide();
         if (!decision.shown) continue;
         if (primaryVisibility.state === "shown" && !dock.isVisible()) dock.showInactive();

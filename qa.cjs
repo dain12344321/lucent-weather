@@ -4,6 +4,7 @@ const { app, BrowserWindow, screen } = require("electron");
 const { tileBounds } = require("./placement");
 module.exports = async function runQA(ctx) {
   const { qa, win, dock, secondary, json, label, show, refresh, setPosition, setScreens, configPath, diagnostics, setConfig, setSelectedDock } = ctx;
+      if (process.argv.includes("--qa-taskbar-only")) return require("./taskbar-qa.cjs")(ctx);
       try {
         const places = await json(
           "https://geocoding-api.open-meteo.com/v1/search?name=London&count=8&language=en&format=json",
@@ -58,7 +59,7 @@ module.exports = async function runQA(ctx) {
         placementChecks.secondary=secondary.diagnostics();
         placementChecks.expected=ctx.secondaryBars.length;
         placementChecks.persisted=JSON.parse(fs.readFileSync(configPath(),"utf8"));
-        if(!placementChecks.left || !placementChecks.tray || placementChecks.secondary.length!==placementChecks.expected || placementChecks.secondary.some(x=>x.taskbarExposed&&!x.visible)) throw Error("Placement or multi-screen regression");
+        if(!placementChecks.left || !placementChecks.tray || placementChecks.secondary.length!==placementChecks.expected || placementChecks.secondary.some(x=>x.fullscreenBlocked===false&&!x.visible)) throw Error("Placement or multi-screen regression");
         fs.writeFileSync(path.join(qa,"placement-test.json"),JSON.stringify(placementChecks,null,2));
         if(placementChecks.secondary.length) {
           const bounds=placementChecks.secondary[0].bounds;

@@ -1,6 +1,6 @@
 {
   "name": "lucent-weather",
-  "version": "0.9.1",
+  "version": "0.9.3",
   "description": "Independent weather and daylight companion",
   "main": "main.js",
   "license": "MIT",
