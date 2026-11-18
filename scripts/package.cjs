@@ -37,7 +37,6 @@ const RUNTIME_FILES = Object.freeze([
   "typography.css",
   "hourly.css",
   "refinement.css",
-  "alpine-ridge.webp",
   "dock.css",
   "LucentWeather.ico",
   "LICENSE",

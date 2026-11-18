@@ -1,12 +1,12 @@
-# Lucent Weather 1.0.0
+# Lucent Weather 1.0.1
 
 A weather and daylight companion for Windows 11. A small taskbar tile opens a weather-responsive forecast, hourly outlook, sun/moon card, and radar.
 
-Version 1.0 brings an illustrated alpine forecast, a more legible hourly strip and a persistent update status. The landscape follows local daylight and weather. Forecasts, radar and location search still work from a single taskbar tile.
+Version 1.0.1 restores the original weather-responsive forecast and taskbar tile. It keeps the updated Windows runtime, forecast recovery improvements, and keyboard focus improvements.
 
 ## Download and run
 
-Download **LucentWeather-v1.0.0-Windows-x64.zip** from [GitHub Releases](https://github.com/dain12344321/lucent-weather/releases). Extract the complete ZIP to a permanent folder and double-click **LucentWeather.exe**. No installer, account, API key, Node.js, or WSL is needed to run it. Keep the runtime files, `locales`, and `resources` beside the executable.
+Download **LucentWeather-v1.0.1-Windows-x64.zip** from [GitHub Releases](https://github.com/dain12344321/lucent-weather/releases). Extract the complete ZIP to a permanent folder and double-click **LucentWeather.exe**. No installer, account, API key, Node.js, or WSL is needed to run it. Keep the runtime files, `locales`, and `resources` beside the executable.
 
 The optional `Install-LucentWeather.cmd` copies the app to a location you choose and can create shortcuts. See [distribution instructions](LUCENTWEATHER-DISTRIBUTION.md). GitHub **Code → Download ZIP** contains source code; use the release asset for Windows.
 

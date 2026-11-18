@@ -1,3 +1,10 @@
+# Lucent Weather v1.0.1
+
+- Restores the v0.9.3 forecast, weather scenes, daylight arc, radar layout and taskbar styling.
+- Retains Electron 44.11.4, forecast and settings recovery, hourly focus preservation, native helper optimizations and stricter installer validation.
+
+---
+
 # Lucent Weather v1.0.0
 
 - A new alpine header combines mountain artwork with the live sky, precipitation and lunar phase.

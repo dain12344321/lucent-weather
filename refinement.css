@@ -1,208 +1,103 @@
-:root {
-  --ink: #0e191e;
-  --surface: #18272d;
-  --rule: #32464a;
-  --paper: #f5f1e7;
-  --muted: #b5c5c6;
-  --brass: #edc98e;
-  --serif: Georgia, "Times New Roman", serif;
+main { padding:0 20px; scroll-snap-type:y mandatory; }
+.weather-page { min-height:calc(100vh - 64px); scroll-snap-align:start; scroll-snap-stop:always; padding:0 0 12px; }
+#now-page { display:flex; flex-direction:column; gap:6px; }
+.current { display:flex; justify-content:center; align-items:center; gap:18px; text-align:left; margin:0; }
+#temperature { font-size:66px; letter-spacing:-3px; }
+.metrics { margin:0; }
+h1 { font-size:27px; }
+.hourly-card { margin:0; padding:10px; }
+#hourly-summary { margin:5px 0; }
+.hour { gap:4px; padding:7px 4px; }
+#hour-detail { padding-top:6px; }
+#hour-detail strong { margin-bottom:2px; }
+.hour-detail-grid { gap:2px 12px; }
+.light-card { padding:10px 14px; margin-top:auto; }
+.light-card > svg { height:65px; }
+.sun-times strong { font-size:17px; }
+#next-event { margin:5px 0; }
+#solar-detail { text-align:center; color:#fffbd4; font-size:12px; margin:8px 0; }
+.environment { border-top:1px solid #ffffff25; padding-top:8px; display:flex; justify-content:space-between; gap:12px; font-size:11px; }
+.moon-card { margin:4px 0 8px; border:0; box-shadow:none; background:none; padding:0; display:flex; align-items:center; gap:12px; }
+#moon-disc { width:42px; height:42px; }
+.moon-card .eyebrow { display:none; }
+.moon-card p { margin:4px 0; }
+#moon-horizon { margin-left:auto; white-space:pre-line; }
+.page-link { background:transparent; border:0; color:#ffffffc9; padding:6px; font-size:11px; }
+#outlook-page { padding-top:5px; }
+.radar-card { margin:10px 0; border:1px solid #ffffff30; border-radius:16px; overflow:hidden; background:#10223c99; }
+#radar-map { height:245px; background:#d9dfe2; isolation:isolate; }
+.radar-controls { display:flex; align-items:center; padding:7px 10px 0; gap:10px; }
+.radar-controls button { background:#ffffff15; border:1px solid #ffffff25; border-radius:7px; padding:4px 10px; }
+#radar-time { min-width:0; flex:1; accent-color:#a5dcff; }
+#radar-status { font-size:11px; margin:6px 10px; min-height:15px; }
+.radar-legend { font-size:10px; margin:6px 10px 9px; display:flex; align-items:center; gap:5px; }
+.radar-legend span { width:65px; height:6px; border-radius:3px; background:linear-gradient(90deg,#00aaff,#00c840,#ffff00,#ff0000,#dd00ee); }
+.leaflet-control-attribution { font-family:var(--font-ui); font-size:9px; color:#222; }
+.leaflet-control-attribution a { color:#164773; }
+.outlook { margin:0; padding:10px 12px 4px; }
+.day { padding:9px 0; }
+#status, footer { scroll-snap-align:end; }
+@media (max-height:720px) {
+.weather-page {min-height:calc(100vh - 60px);}
+#now-page {gap:4px;}
+#temperature {font-size:50px;}
+#radar-map {height:200px;}
+.hour {padding:4px;}
+.light-card > svg {height:45px;}
 }
-body {
-  background: var(--ink);
-  color: var(--paper);
+
+main { container-type:size; overflow-anchor:none; }
+.weather-page { min-height:100cqh; }
+/* Grade only the basemap; precipitation colors retain NOAA's meaning. */
+#radar-map { background:#182530; }
+#radar-map .leaflet-tile-pane { filter:invert(1) hue-rotate(180deg) saturate(.35) brightness(1.05) contrast(.88); }
+#radar-map .leaflet-bar { border:1px solid #607384; box-shadow:0 2px 8px #0005; }
+#radar-map .leaflet-bar a { background:#233440; color:#eef5fa; border-bottom-color:#526674; }
+#radar-map .leaflet-bar a:hover { background:#354b5b; }
+#radar-map .leaflet-bar a.leaflet-disabled { color:#899ba9; }
+#radar-map .leaflet-control-attribution { background:#172630ed; color:#d6e0e8; }
+#radar-map .leaflet-control-attribution a { color:#b9def5; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
-header {
-  height: 43px;
-  padding: 0 15px;
-  background: #111e24;
-  border-bottom: 1px solid #ffffff10;
+
+.page-link:focus-visible,
+.radar-controls button:focus-visible,
+#radar-time:focus-visible {
+  outline: 2px solid #f5d799;
+  outline-offset: 2px;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font: 600 15px var(--font-ui);
-  letter-spacing: -.25px;
-  color: var(--paper);
+
+.radar-controls button:disabled,
+#radar-time:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
-.brand img { margin-right: 2px; }
-.brand span { font-weight: 400; color: var(--muted); }
-.actions { align-items: center; gap: 6px; }
-.actions button {
-  min-height: 29px;
-  border: 1px solid #ffffff20;
-  border-radius: 7px;
-  color: #dfe8e5;
-  background: #ffffff05;
+
+#radar-time {
+  min-height: 24px;
 }
-.actions button:hover { background: #ffffff12; }
-#close { width: 31px; font-size: 20px; padding: 1px 0 3px; }
-main {
-  container-type: size;
-  padding: 0 14px;
-  scroll-snap-type: y proximity;
-  overflow-anchor: none;
-  scrollbar-width: thin;
-  scrollbar-color: #526567 var(--ink);
-}
-.weather-page { min-height: 100cqh; scroll-snap-align: start; }
-#now-page { display: flex; flex-direction: column; gap: 8px; padding-bottom: 4px; }
-.forecast-hero {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0 -14px;
-  padding: 14px 18px 12px;
-  color: #fffbf0;
-}
-.forecast-hero .atmosphere { position: absolute; inset: 0; }
-.atmosphere .ridge, .atmosphere::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-}
-.atmosphere .ridge {
-  background: url("alpine-ridge.webp") center bottom / 100% auto no-repeat;
-}
-body[data-phase="night"] .ridge { filter: brightness(.68) saturate(.65); }
-body[data-scene="fog"] .ridge { opacity: .65; }
-.atmosphere::after {
-  background: linear-gradient(90deg,#08141ed9,#0c1b2980 52%,transparent 86%),
-              linear-gradient(0deg,#0e191e 0%,#0e191e30 26%,transparent 70%);
-}
-body[data-scene] .atmosphere .orb { top: 16px; right: 80px; width: 35px; height: 35px; }
-.forecast-hero .cloud-one { top: 8px; }
-.forecast-hero .cloud-two { top: 72px; }
-.forecast-hero .precipitation { z-index: 1; }
-.place-row { padding: 0 40px 0 0; text-align: left; }
-#date {
-  color: #efdbb1;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.3px;
-  margin: 0 0 4px;
-}
-#place {
-  font: 400 33px/1.04 var(--serif);
-  letter-spacing: -.8px;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-#region { color: #e0e4df; margin: 3px 0 0; font-size: 11px; }
-#refresh {
-  top: 0;
-  right: 0;
-  width: 30px;
-  height: 30px;
-  border: 1px solid #ffffff4a;
-  border-radius: 50%;
-  background: #10212c65;
-  color: #fff;
-}
-.current { display: flex; align-items: center; gap: 14px; margin: 6px 0 2px; text-align: left; }
-#temperature { font: 300 62px/.96 "Segoe UI Variable Display",var(--font-ui); letter-spacing: -3.8px; }
-#condition { font-size: 16px; line-height: 1.2; }
-#feels { font-size: 12px; color: #e2e7e6; margin: 3px 0 0; }
-.metrics { justify-content: flex-start; gap: 14px; color: #dce5e5; font-size: 11px; margin: 5px 0 0; }
-.hourly-card, .light-card, .outlook, .radar-card {
-  background: linear-gradient(120deg, #1d2d32, #17252b 80%);
-  border: 1px solid var(--rule);
-  border-radius: 13px;
-  backdrop-filter: none;
-  box-shadow: none;
-}
-.hourly-card, .light-card { margin: 0; padding: 9px 12px; }
-.card-head { color: var(--paper); }
-#hourly-title, #outlook-page > .card-head > span, .outlook > .eyebrow {
-  font: 400 19px/1.2 var(--serif);
-  letter-spacing: -.25px;
-  color: var(--paper);
-}
-#hourly-range { font-size: 11px; color: var(--brass); }
-#hourly-summary { font-size: 11px; color: var(--muted); margin: 3px 0 5px; }
-#hours { gap: 2px; padding-bottom: 4px; scrollbar-color: #586a6a transparent; }
-.hour { flex-basis: 54px; border-radius: 8px; padding: 4px 2px; gap: 3px; }
-.hour[aria-pressed="true"] { color: #fff3cf; border-color: #cab99189; background: #d3be8920; }
-.hour .forecast-icon { width: 23px; height: 23px; }
-.hour strong { font-size: 17px; }
-.hour .chance, .rain { color: #a3d2e0; }
-#hour-detail { border-color: var(--rule); padding: 5px 0 0; font-size: 11px; }
-#hour-detail strong { font-weight: 600; margin: 0 0 1px; }
-.hour-detail-grid { gap: 0 12px; color: var(--muted); }
-.light-card { margin-top: auto; }
-.light-card > .card-head { color: var(--brass); }
-#light-title { display: flex; gap: 5px; align-items: center; }
-#light-title .section-name { color: var(--paper); font: 400 18px var(--serif); letter-spacing: -.3px; }
-#daylength { font-size: 11px; letter-spacing: .25px; }
-.light-card > svg { width: 100%; height: 51px; }
-.sun-times { padding: 0 2px; }
-.sun-times span { font-size: 9px; color: var(--muted); letter-spacing: 1.2px; }
-.sun-times strong { font-size: 15px; font-weight: 500; margin-top: 1px; }
-#next-event, #solar-detail { text-align: center; margin: 3px 0; color: var(--brass); font-size: 11px; }
-#solar-detail { color: var(--muted); }
-.moon-card {
-  padding: 0;
-  margin: 4px 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-#moon-disc { width: 32px; height: 32px; }
-.moon-card .eyebrow { display: none; }
-#moon-detail, #moon-horizon { color: var(--muted); font-size: 10px; }
-.environment { display: flex; justify-content: space-between; gap: 8px; padding-top: 5px; border-top: 1px solid var(--rule); color: #d8e6df; font-size: 11px; }
-#to-outlook, #to-now { color: var(--brass); background: transparent; padding: 4px 7px; font-size: 12px; }
-#to-outlook { align-self: center; }
-#outlook-page { padding: 12px 0 8px; }
-#outlook-page > .card-head { padding: 0 2px 8px; }
-.radar-card { margin: 0 0 9px; overflow: hidden; }
-#radar-map { height: clamp(155px, 30cqh, 225px); background: #1e2c32; isolation: isolate; }
-#radar-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) saturate(.35) brightness(1.05) contrast(.88); }
-#radar-map .leaflet-bar a, #radar-map .leaflet-control-attribution { background: #1b2a30; color: #e4e9df; }
-#radar-map .leaflet-control-attribution a { color: #aadbe5; }
-.radar-controls { display: flex; align-items: center; gap: 10px; padding: 8px 12px 0; }
-.radar-controls button { background: #31434a; padding: 5px 11px; }
-#radar-time { flex: 1; min-width: 0; min-height: 22px; accent-color: var(--brass); }
-#radar-status, .radar-legend { margin: 5px 12px; font-size: 11px; min-height: 15px; }
-.radar-legend { display: flex; gap: 5px; align-items: center; margin-bottom: 9px; color: var(--muted); }
-.radar-legend span { width: 54px; height: 5px; border-radius: 3px; background: linear-gradient(90deg,#00aaff,#00c840,#ffff00,#ff0000,#dd00ee); }
-.outlook { padding: 10px 12px 3px; margin: 0; }
-.outlook > .eyebrow { margin: 0 0 5px; }
-.day { padding: 9px 0; font-size: 12px; grid-template-columns: 36px minmax(0,1fr) 20px 32px 68px; gap: 5px; }
-.day > span:first-child { font-weight: 600; }
-.temps { color: #f8ebcf; }
-#status {
-  flex: none;
-  min-height: 20px;
-  padding: 4px 14px;
-  margin: 0;
-  border-top: 1px solid #ffffff12;
-  background: #111e24;
-  color: #bed0c9;
-  font-size: 11px;
-  text-align: left;
-}
-#status:empty { display: none; }
-footer { padding: 8px 0 13px; color: var(--muted); font-size: 10px; }
-#setup { position: relative; isolation: isolate; min-height: 0; padding: 0 2px 18px; }
-.setup-landscape { height: clamp(82px,22cqh,155px); margin: 0 -16px 20px; background: url("alpine-ridge.webp") center bottom / cover no-repeat, linear-gradient(#3b515e,#9caead); }
-#setup h1 { font: 400 31px/1.1 var(--serif); margin: 0 0 20px; }
-.search button { background: #efd5a5; color: #243034; font-weight: 600; }
-input, select, .result { background: #1e3037; border: 1px solid var(--rule); color: var(--paper); }
-.result:hover { background: #2e464c; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
-button:disabled { opacity: .55; cursor: default; }
-.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
-@media (max-height: 730px), (prefers-reduced-motion: reduce) {
-  main { scroll-snap-type: none; }
-}
-@media (max-height: 730px) {
-  .forecast-hero { flex-grow: 0; }
-  .light-card { margin-top: 0; }
-  .weather-page { min-height: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  main {
+    scroll-snap-type: none;
+  }
+  .weather-page {
+    scroll-snap-stop: normal;
+  }
+  #arc-marker {
+    transition: none !important;
+  }
 }

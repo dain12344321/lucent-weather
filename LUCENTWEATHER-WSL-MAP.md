@@ -17,7 +17,7 @@ The canonical published source is the GitHub repository. The historical WSL chec
     │   ├── resources/Geometry.exe
     │   └── locales/{en-US,en-GB}.pak
     └── release/
-        └── LucentWeather-v1.0.0-Windows-x64/  ZIP staging root
+        └── LucentWeather-v1.0.1-Windows-x64/  ZIP staging root
 
 C:\Programs\Lucent Weather\               optional Windows install target
 ├── LucentWeather.exe

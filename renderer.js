@@ -121,8 +121,7 @@ function render(s, preview) {
   const daylightNow = daylight.rise === null || daylight.set === null ? Boolean(Number(isDay)) : daylight.daytime;
   document.body.dataset.weather = Solar.theme(c.weather_code, isDay);
   text("place", s.place.name);
-  const label = s.place.label || s.place.name;
-  text("region", label.startsWith(s.place.name + ", ") ? label.slice(s.place.name.length + 2) : label === s.place.name ? "" : label);
+  text("region", s.place.label);
   text(
     "date",
     new Intl.DateTimeFormat("en", {
@@ -221,10 +220,7 @@ function render(s, preview) {
 
   renderHourly(s);
   const rising = !daylightNow;
-  const lightLabel = document.createElement("span");
-  lightLabel.className = "section-name";
-  lightLabel.textContent = "Sun & moon";
-  $("light-title").replaceChildren(solarIcon(rising), lightLabel);
+  $("light-title").replaceChildren(solarIcon(rising));
   $("light-title").title = rising ? "Next sunrise" : "Next sunset";
   const duration = daylight.duration,
     remaining = daylightNow && !daylight.daytime ? null : daylight.remaining,
@@ -236,16 +232,16 @@ function render(s, preview) {
     "daylength",
     daylightNow && duration !== null
       ? `${Math.floor(duration / 60)}h ${duration % 60}m daylight`
-      : daylightNow ? "Daylight" : "Moonlight",
+      : daylightNow ? "Daylight" : "NIGHT · THE MOON",
   );
   $("sun").style.display = daylightNow ? "" : "none";
   $("arc-moon").style.display = daylightNow ? "none" : "";
   $("arc-marker").style.display = t === null ? "none" : "";
   if (t !== null)
     $("arc-marker").style.transform =
-      `translate(${20 + 300 * t}px,${54 - 164 * t * (1 - t)}px)`;
-  text("sun-caption", daylightNow ? "Daylight" : "Night");
-  $("sun-caption").setAttribute("font-size", "11");
+      `translate(${20 + 300 * t}px,${125 - 400 * t * (1 - t)}px)`;
+  text("sun-caption", daylightNow ? "Daylight" : countdown);
+  $("sun-caption").setAttribute("font-size", daylightNow ? "12" : "25");
   text(
     "next-event",
     remaining === null
@@ -574,8 +570,8 @@ function renderHourly(s) {
   text(
     "hourly-summary",
     rain
-      ? `Rain chance reaches ${Math.round(rain.rain)}% at ${label(rain.time)}.`
-      : "Select an hour for details.",
+      ? `Rain chance reaches ${Math.round(rain.rain)}% at ${label(rain.time)}. Tap an hour for details.`
+      : "Your day, hour by hour. Tap an hour for details.",
   );
   for (const h of list) {
     const b = document.createElement("button");
