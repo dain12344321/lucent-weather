@@ -263,14 +263,6 @@ body[data-scene="unknown"] .cloud {
 body[data-phase="night"] .hills {
   filter: brightness(0.55);
 }
-.day > span:nth-child(2) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.day > span:nth-child(2):hover {
-  white-space: normal;
-}
 @keyframes rainfall {
   to {
     background-position: -35px 220px;
@@ -301,7 +293,7 @@ body[data-phase="night"][data-moon-up="false"] .orb {
   display: none;
 }
 body[data-phase="night"][data-scene="partly-cloudy"] .orb {
-  opacity: 0.55;
+  opacity: 0.72;
 }
 body[data-phase="night"][data-scene="snow"] .orb {
   opacity: 0.15;
@@ -382,12 +374,6 @@ header {
 body[data-phase="night"] .stars {
   filter: drop-shadow(0 0 1px #dde7ff40);
 }
-.icon-definitions {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
 .event-icon {
   display: block;
   width: 27px;
@@ -405,9 +391,6 @@ body[data-phase="night"] .stars {
   grid-template-columns: 40px minmax(0, 1fr) 20px 29px 71px;
   gap: 6px;
 }
-.day > span:nth-child(2) {
-  min-width: 0;
-}
 #arc-marker {
   transition: transform 2s linear;
 }
@@ -419,7 +402,7 @@ body[data-phase="night"] .stars {
   width: 27px;
   margin: 0;
 }
-#arc-marker circle {
+#sun circle {
   filter: drop-shadow(0 0 3px #ffd77750);
 }
 @media (prefers-reduced-motion: reduce) {

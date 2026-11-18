@@ -27,6 +27,7 @@ const RUNTIME_FILES = Object.freeze([
   "renderer.js",
   "dock.js",
   "solar.js",
+  "weather-icons.js",
   "suncalc.js",
   "lunar.js",
   "daylight.js",

@@ -44,6 +44,33 @@ test("sunrise/sunset use selected local time and missing sun times remain safe",
   assert.equal(scene(95, 0, 360, 1080, 1380).kind, "storm");
   assert.equal(scene(0, 0, null, null, 800).phase, "night");
 });
+test("forecast glyphs follow the date and clock of the selected location", () => {
+  const { localSky } = require("./solar");
+  const skyAt = localSky({
+    time: ["2026-11-01", "2026-11-02"],
+    sunrise: ["2026-11-01T06:28", "2026-11-02T06:30"],
+    sunset: ["2026-11-01T16:42", "2026-11-02T16:40"],
+  }, "America/Chicago");
+  assert.equal(skyAt(0, 0, new Date("2026-11-01T12:05Z")).phase, "sunrise");
+  assert.equal(skyAt(0, 0, new Date("2026-11-01T18:00Z")).phase, "day");
+  assert.equal(skyAt(0, 1, new Date("2026-11-01T22:35Z")).phase, "sunset");
+  assert.equal(skyAt(0, 1, new Date("2026-11-02T02:00Z")).phase, "night");
+  assert.equal(skyAt(0, 0, new Date("2026-11-02T12:05Z")).phase, "sunrise");
+  assert.equal(skyAt(0, 0, new Date("2026-11-03T18:00Z")).phase, "night");
+});
+
+test("approved glyphs distinguish rain families and cover missing readings", () => {
+  const { weather, moon } = require("./weather-icons");
+  const { labels } = require("./solar");
+  for (const phase of ["sunrise", "day", "sunset", "night"]) {
+    for (const code of Object.keys(labels)) assert.notEqual(weather(code, phase), weather(null, phase));
+  }
+  const wet = [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82];
+  assert.equal(new Set(wet.map((code) => weather(code))).size, wet.length);
+  assert.equal(new Set(["sunrise", "day", "sunset", "night"].map((phase) => weather(0, phase))).size, 4);
+  assert.notEqual(moon(0), moon(null));
+  assert.notEqual(moon(.25), moon(.75));
+});
 test("lunar phase names wrap around and preserve waxing/waning", () => {
   const { phaseName } = require("./lunar");
   assert.equal(phaseName(0), "New moon");
@@ -196,7 +223,8 @@ test("dismissed context menus clear tile focus and hover until pointer returns",
   const vm=require("node:vm"),fs=require("node:fs"),listeners={},widgetListeners={},classes=new Set();
   let finish,blurred=false;
   const widget={blur:()=>{blurred=true;},classList:{add:x=>classes.add(x),remove:x=>classes.delete(x)},addEventListener:(n,fn)=>widgetListeners[n]=fn};
-  const context={document:{getElementById:()=>widget,addEventListener:(n,fn)=>listeners[n]=fn},
+  const context={document:{getElementById:(id)=>id==="icon"?{append(){}}:widget,addEventListener:(n,fn)=>listeners[n]=fn},
+    WeatherIcons:{graphic() {},solar() {}},
     window:{addEventListener(){},weather:{toggle(){},onUpdate(){},menu:()=>new Promise(r=>finish=r)}}};
   vm.runInNewContext(fs.readFileSync(require.resolve("./dock.js"),"utf8"),context);
   const pending=listeners.contextmenu({preventDefault(){}});

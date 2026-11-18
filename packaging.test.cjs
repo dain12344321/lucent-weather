@@ -31,6 +31,7 @@ test("asar allowlist retains every application runtime module and omits maintena
   for (const file of [
     "qa.cjs",
     "weather-service.cjs",
+    "weather-icons.js",
     "geometry.js",
     "visibility.js",
     "main.js",

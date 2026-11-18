@@ -108,6 +108,24 @@
       hail: [96, 99].includes(weatherCode),
     };
   }
+  function localSky(daily, zone) {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    });
+    const days = Array.isArray(daily?.time) ? daily.time : [];
+    return (code, isDay, at) => {
+      const parts = Object.fromEntries(formatter.formatToParts(at).map(({ type, value }) => [type, value]));
+      const index = days.indexOf(`${parts.year}-${parts.month}-${parts.day}`);
+      return scene(code, isDay, minutes(daily?.sunrise?.[index]), minutes(daily?.sunset?.[index]),
+        Number(parts.hour) * 60 + Number(parts.minute));
+    };
+  }
   function theme(c, day) {
     const weatherCode = code(c);
     if (weatherCode >= 95) return "storm";
@@ -147,7 +165,7 @@
       }[t] || "☀"
     );
   }
-  const api = { minutes, progress, condition, theme, icon, scene, labels, aqiLabel };
+  const api = { minutes, progress, condition, theme, icon, scene, localSky, labels, aqiLabel };
   if (typeof module !== "undefined") module.exports = api;
   else root.Solar = api;
 })(globalThis);

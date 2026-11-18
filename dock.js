@@ -1,5 +1,7 @@
 document.getElementById("widget").onclick = () => window.weather.toggle();
 const widget = document.getElementById("widget");
+const icon = document.getElementById("icon");
+icon.append(WeatherIcons.graphic(WeatherIcons.solar("day")));
 function clearHighlight() {
   widget.blur();
   // Native menus can swallow pointerleave, leaving Chromium's :hover latched.
@@ -31,22 +33,11 @@ window.weather.onUpdate((s) => {
   const c = s.data.current;
   const theme = Solar.theme(c.weather_code, c.is_day);
   document.body.dataset.weather = theme;
-  document
-    .getElementById("weather-glyph")
-    .setAttribute(
-      "href",
-      "#" +
-        {
-          clear: "sunny",
-          night: "moon",
-          cloudy: "cloudy",
-          "night-cloudy": "cloudy",
-          rain: "rainy",
-          snow: "snowy",
-          storm: "stormy",
-          fog: "foggy",
-        }[theme],
-    );
+  const skyAt = Solar.localSky(s.data.daily, s.data.timezone || "UTC");
+  const { phase } = skyAt(c.weather_code, c.is_day, Date.now());
+  icon.replaceChildren(
+    WeatherIcons.graphic(WeatherIcons.weather(c.weather_code, phase)),
+  );
   document.getElementById("temp").textContent =
     `${Math.round(c.temperature_2m)}°${s.unit}`;
   document.getElementById("detail").textContent = Solar.condition(
