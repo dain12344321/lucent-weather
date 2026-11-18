@@ -1,3 +1,12 @@
+# Lucent Weather v1.0.0
+
+- A new alpine header combines mountain artwork with the live sky, precipitation and lunar phase.
+- The hourly forecast, daylight chart and radar use a shared layout. Update status stays visible on either page, and smaller windows support ordinary scrolling.
+- Minute updates preserve hourly keyboard focus. A failed location or unit change preserves the previous forecast and preferences.
+- The Windows runtime uses Electron 44.11.4. The taskbar tile, tray menu and existing settings path carry forward.
+
+---
+
 # Lucent Weather v0.9.3
 
 - Fix weather tiles appearing over fullscreen games when a clipboard dialog or another app takes focus. Full-monitor windows above the taskbar keep the tile hidden until the taskbar is exposed.

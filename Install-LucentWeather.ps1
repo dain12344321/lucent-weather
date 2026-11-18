@@ -24,6 +24,10 @@ function Test-LucentWeatherPayload {
   if (-not (Test-Path -LiteralPath $required[1] -PathType Leaf)) { return $false }
   if (-not (Test-Path -LiteralPath $required[2] -PathType Leaf)) { return $false }
   if (-not (Test-Path -LiteralPath $required[3] -PathType Container)) { return $false }
+  foreach ($name in @('icudtl.dat', 'resources.pak', 'ffmpeg.dll', 'v8_context_snapshot.bin', 'locales\en-US.pak')) {
+    $item = Get-Item -LiteralPath (Join-Path $Path $name) -ErrorAction SilentlyContinue
+    if ($null -eq $item -or $item.PSIsContainer -or $item.Length -eq 0) { return $false }
+  }
   return ((Get-Item -LiteralPath $required[0]).Length -gt 100MB)
 }
 
@@ -80,7 +84,7 @@ if (Test-Path -LiteralPath $installFull) {
   $existing = Get-Item -LiteralPath $installFull -Force
   if (($existing.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
       -not (Test-LucentWeatherPayload -Path $installFull)) {
-    throw 'The destination exists and is not a Lucent Weather installation. Choose a new empty app folder.'
+    throw 'The destination exists and is not a Lucent Weather installation. Choose a new app folder.'
   }
 }
 
@@ -118,6 +122,7 @@ foreach ($target in @($staging, $backup)) {
     throw 'The staging or backup path escaped the installation parent.'
   }
 }
+$stagingCreated = $false
 $backupCreated = $false
 $installCommitted = $false
 
@@ -127,7 +132,8 @@ try {
   if (Test-Path -LiteralPath $staging) {
     throw "Temporary staging folder already exists: $staging"
   }
-  New-Item -ItemType Directory -Path $staging -Force | Out-Null
+  New-Item -ItemType Directory -Path $staging | Out-Null
+  $stagingCreated = $true
 
   # Copy only the portable runtime. Release wrappers and docs stay beside the
   # extracted ZIP and are not mixed into the installed program folder.
@@ -154,7 +160,7 @@ try {
 }
 catch {
   # Keep a failed new tree recoverable while restoring the previous one.
-  if (Test-Path -LiteralPath $staging) {
+  if ($stagingCreated -and (Test-Path -LiteralPath $staging)) {
     Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
   }
   if ($installCommitted -and (Test-Path -LiteralPath $installFull)) {

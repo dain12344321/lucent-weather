@@ -51,6 +51,7 @@ function log(event, details = {}) {
 const secondary = require("./secondary")(()=>config,()=>last,()=>win,log);
 let secondaryBars=[];
 let selectedDock=null;
+let testBlurDismiss = false;
 function diagnostics() {
   return {
     version: app.getVersion(),
@@ -87,13 +88,21 @@ function save(value = config) {
 function label(p) {
   return [p.name, p.admin1, p.country].filter(Boolean).join(", ");
 }
-async function refresh() {
+function refresh() {
   if (busy || !config.place) return;
+  return updateWeather(config, false);
+}
+async function updateWeather(requested, selection) {
   busy = true;
   publish({ loading: true });
   try {
-    const data = await fetchWeather(config);
+    const data = await fetchWeather(requested);
     if (app.quitting) return;
+    if (selection) {
+      const next = {...config, place: requested.place, unit: requested.unit};
+      save(next);
+      config = next;
+    }
     last = {
       data,
       place: config.place,
@@ -114,7 +123,8 @@ async function refresh() {
   } catch (e) {
     if (app.quitting) return;
     log("weather-error", { message: e.message });
-    publish({ error: e.message, last });
+    publish({ error: e.message, last, selectionFailed: selection });
+    if (selection) throw e;
     tray?.setToolTip("Lucent Weather — update unavailable");
   } finally {
     busy = false;
@@ -183,6 +193,7 @@ function observeTaskbar() {
           display: b,
           foreground: f,
           frontClass: g.frontClass,
+          foregroundHandle: g.foregroundHandle,
           taskbarAbove: g.taskbarAbove,
           fullscreenBlocked: g.fullscreenBlocked,
         };
@@ -228,7 +239,7 @@ function observeTaskbar() {
   );
   child.on("exit", (code) => recover("exit " + code));
 }
-if (!app.requestSingleInstanceLock()) app.quit();
+if (!app.requestSingleInstanceLock() || process.argv.includes("--quit")) app.quit();
 else {
   app.on("second-instance", (_, argv) => {
     const report = argv.find((a) => a.startsWith("--diagnostics="));
@@ -275,7 +286,7 @@ else {
     });
     win.on("blur", () => {
       log("panel-blur");
-      if (qa) return;
+      if (qa && !testBlurDismiss) return;
       clearTimeout(panelBlurTimer);
       panelBlurTimer = setTimeout(
         () => {
@@ -362,7 +373,11 @@ else {
     tray = new Tray(nativeImage.createFromDataURL(image));
     tray.setToolTip("Lucent Weather");
     updateTrayMenu();
-    tray.on("click", () => (win.isVisible() ? win.hide() : show()));
+    tray.on("click", () => {
+      if (win.isVisible()) return win.hide();
+      selectedDock = dock;
+      show();
+    });
     if (qa) {
       await require("./qa.cjs")({
         qa, win, dock, secondary, json, label, show, refresh, setPosition,
@@ -370,6 +385,7 @@ else {
         get config() { return config; }, get last() { return last; },
         get geometry() { return geometry; }, get secondaryBars() { return secondaryBars; },
         get selectedDock() { return selectedDock; },
+        enableBlurTest(value) { testBlurDismiss = value; },
         setConfig(value) { config = value; }, setSelectedDock(value) { selectedDock = value; },
       });
     } else {
@@ -421,17 +437,14 @@ handle("select", async (_, p, unit) => {
   if (busy) throw Error("Please wait for the current update.");
   if (!validPlace(p)) throw Error("Choose a location from search results.");
   const next = normalizeConfig({...config, place: p, unit});
-  save(next);
-  config = next;
-  last = null;
-  await refresh();
+  await updateWeather(next, true);
   return config;
 });
 handle("refresh", refresh);
 
 handle("toggle", (event) => {
   const target=BrowserWindow.fromWebContents(event.sender);
-  const same=selectedDock===target;
+  const same=(selectedDock && !selectedDock.isDestroyed() ? selectedDock : dock)===target;
   selectedDock=target;
   if(win.isVisible()&&same)win.hide();else show();
 });

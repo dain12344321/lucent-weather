@@ -17,24 +17,12 @@
 <link rel="stylesheet" href="refinement.css" />
   </head>
   <body data-weather="clear">
-    <div class="atmosphere" aria-hidden="true">
-      <div class="stars"></div>
-      <div class="orb">
-        <canvas id="sky-moon" width="128" height="128"></canvas>
-      </div>
-      <div class="horizon-glow"></div>
-      <div class="cloud cloud-one"></div>
-      <div class="cloud cloud-two"></div>
-      <div class="precipitation"></div>
-      <div class="hills hills-back"></div>
-      <div class="hills hills-front"></div>
-    </div>
     <header>
       <div class="brand">
-        <span class="sun-dot"></span>LUCENT <span class="muted">/ WEATHER</span>
+        <img src="LucentWeather.ico" alt="" width="25" height="25" />Lucent <span>Weather</span>
       </div>
       <div class="actions">
-        <button id="settings" type="button" title="Change location">⌖ Location</button
+        <button id="settings" type="button" title="Change location">Location</button
         ><button id="close" type="button" title="Close forecast" aria-label="Close forecast">
           ×
         </button>
@@ -99,11 +87,8 @@
     </svg>
     <main tabindex="-1">
       <section id="setup">
-        <p class="eyebrow">YOUR CORNER OF THE WORLD</p>
-        <h1>Follow the light.</h1>
-        <p class="intro">
-          Weather, sunrise and sunset.<br />A little closer to your day.
-        </p>
+        <div class="setup-landscape" aria-hidden="true"></div>
+        <h1>Your forecast location</h1>
         <form id="search-form">
           <label for="query">City or postal code</label>
           <div class="search">
@@ -132,7 +117,20 @@
         <button id="cancel" type="button" class="quiet" hidden>Back to weather</button>
       </section>
       <section id="forecast" hidden>
-        <div class="weather-page" id="now-page"><div class="place-row">
+        <div class="weather-page" id="now-page">
+        <section class="forecast-hero" aria-label="Current conditions">
+    <div class="atmosphere" aria-hidden="true">
+      <div class="stars"></div>
+      <div class="orb">
+        <canvas id="sky-moon" width="128" height="128"></canvas>
+      </div>
+      <div class="horizon-glow"></div>
+      <div class="cloud cloud-one"></div>
+      <div class="cloud cloud-two"></div>
+      <div class="precipitation"></div>
+      <div class="ridge"></div>
+    </div>
+        <div class="place-row">
           <div>
             <p class="eyebrow" id="date"></p>
             <h1 id="place"></h1>
@@ -157,12 +155,13 @@
         <div class="metrics">
           <span id="wind"></span><span id="humidity"></span>
         </div>
+        </section>
         <section class="hourly-card" aria-labelledby="hourly-title">
           <div class="card-head">
-            <span id="hourly-title">NEXT 24 HOURS</span><span id="hourly-range"></span>
+            <span id="hourly-title">Hourly forecast</span><span id="hourly-range"></span>
           </div>
           <p id="hourly-summary"></p>
-          <div id="hours" role="listbox" aria-label="Choose a forecast hour"></div>
+          <div id="hours" role="group" aria-label="Choose a forecast hour"></div>
           <div id="hour-detail" role="status" aria-live="polite"></div>
         </section>
         <section class="light-card" aria-label="Daylight and moon details">
@@ -170,7 +169,7 @@
             <span id="light-title" aria-live="polite"></span
             ><span id="daylength"></span>
           </div>
-          <svg viewBox="0 0 340 145" aria-label="Daylight progress">
+          <svg viewBox="0 0 340 64" aria-label="Daylight progress">
             <defs>
               <linearGradient id="glow">
                 <stop stop-color="#c47e52" />
@@ -179,19 +178,19 @@
               </linearGradient>
             </defs>
             <path
-              d="M20 125 Q170 -75 320 125"
+              d="M20 54 Q170 -28 320 54"
               fill="none"
               stroke="#33434a"
               stroke-width="2"
             />
             <path
-              d="M20 125 Q170 -75 320 125"
+              d="M20 54 Q170 -28 320 54"
               fill="none"
               stroke="url(#glow)"
               stroke-width="3"
               stroke-dasharray="3 6"
             />
-            <line x1="12" y1="125" x2="328" y2="125" stroke="#44504e" />
+            <line x1="12" y1="54" x2="328" y2="54" stroke="#44504e" />
             <g id="arc-marker">
               <circle id="sun" r="7" fill="#f5d799" />
               <path
@@ -203,7 +202,7 @@
             <text
               id="sun-caption"
               x="170"
-              y="108"
+              y="48"
               text-anchor="middle"
               fill="#ddd2b9"
               font-size="12"
@@ -236,19 +235,19 @@
 <div class="environment"><span id="uv"></span><span id="air-quality" title="Modeled US AQI from CAMS, not a nearby sensor"></span></div>
         </section>
 <button class="page-link" id="to-outlook" type="button">Radar & seven days ↓</button></div>
-<div class="weather-page" id="outlook-page"><div class="card-head"><span>YOUR LOCAL OUTLOOK</span><button class="page-link" id="to-now" type="button">↑ Now</button></div>
+<div class="weather-page" id="outlook-page"><div class="card-head"><span>Local radar</span><button class="page-link" id="to-now" type="button">↑ Now</button></div>
 <section class="radar-card" aria-labelledby="radar-title"><h2 id="radar-title" class="visually-hidden">Local precipitation radar</h2><div id="radar-map" role="application" aria-label="Local precipitation radar map"></div><div class="radar-controls"><button id="radar-play" type="button">Play</button><label class="visually-hidden" for="radar-time">Radar frame</label><input id="radar-time" type="range" min="0" max="0" value="0" aria-label="Radar frame"/><button id="radar-refresh" type="button" aria-label="Refresh radar">↻</button></div><p id="radar-status" role="status" aria-live="polite">Scroll here to load radar</p><div class="radar-legend">Reflectivity · light <span></span> heavy · NOAA/NWS</div></section>
         <section class="outlook">
-          <p class="eyebrow">SEVEN DAYS AHEAD</p>
+          <p class="eyebrow">Seven-day forecast</p>
           <div id="days" aria-live="polite"></div>
         </section>
 </div>      </section>
-      <p id="status" role="status" aria-live="polite"></p>
       <footer>
         Weather: Open-Meteo · Air: CAMS / Open-Meteo · CC BY 4.0<br />Refreshes every 15 min
         · Right-click taskbar widget to quit
       </footer>
     </main>
+    <p id="status" role="status" aria-live="polite"></p>
     <script src="solar.js"></script>
     <script src="suncalc.js"></script>
     <script src="lunar.js"></script>

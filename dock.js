@@ -22,6 +22,7 @@ window.weather.onUpdate((s) => {
   }
   widget.setAttribute("aria-busy", "false");
   if (s.error) {
+    if (s.selectionFailed && s.last) return;
     if (!s.last) document.getElementById("temp").textContent = "Weather";
     document.getElementById("detail").textContent = s.last ? "Update unavailable" : "Open to retry";
     widget.title = s.error;

@@ -1,13 +1,13 @@
 # Lucent Weather Windows distribution
 
-Lucent Weather 0.9.3 is a portable Windows app. The release ZIP has one flat
+Lucent Weather 1.0.0 is a portable Windows app. The release ZIP has one flat
 runtime root: `LucentWeather.exe` sits beside `resources\`, Chromium DLLs,
 `locales\`, and the two optional launcher/installer scripts. Keep that root
 together after extraction.
 
 ## Portable use
 
-Extract `LucentWeather-v0.9.3-Windows-x64.zip` into a permanent folder and
+Extract `LucentWeather-v1.0.0-Windows-x64.zip` into a permanent folder and
 open `LucentWeather.exe`. `Run-LucentWeather.cmd` is a convenience launcher
 for the same folder. No installation, administrator rights, registry entries,
 or automatic startup are required. The app stores its settings in

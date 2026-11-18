@@ -118,9 +118,11 @@ function render(s, preview) {
     at = dateValue(preview?.now);
   const daylight = Daylight.describe(a, zone, at),
     isDay = c.is_day === undefined || c.is_day === null ? daylight.daytime : c.is_day;
+  const daylightNow = daylight.rise === null || daylight.set === null ? Boolean(Number(isDay)) : daylight.daytime;
   document.body.dataset.weather = Solar.theme(c.weather_code, isDay);
   text("place", s.place.name);
-  text("region", s.place.label);
+  const label = s.place.label || s.place.name;
+  text("region", label.startsWith(s.place.name + ", ") ? label.slice(s.place.name.length + 2) : label === s.place.name ? "" : label);
   text(
     "date",
     new Intl.DateTimeFormat("en", {
@@ -154,12 +156,12 @@ function render(s, preview) {
     t = daylight.progress;
   text(
     "sunrise",
-    clock(sunrise[daylight.daytime ? idx : daylight.nextIndex]),
+    clock(sunrise[daylightNow ? idx : daylight.nextIndex]),
   );
   text("sunset", clock(sunset[idx]));
   const visual = Solar.scene(
     c.weather_code,
-    daylight.daytime ? 1 : 0,
+    daylightNow ? 1 : 0,
     rise,
     set,
     Number.isFinite(now) ? now : null,
@@ -173,9 +175,9 @@ function render(s, preview) {
     hail: String(visual.hail),
   });
   Lunar.update(s, preview);
-  document.body.dataset.daytime = String(daylight.daytime);
-  $("night-details").hidden = daylight.daytime;
-  $("solar-detail").hidden = !daylight.daytime;
+  document.body.dataset.daytime = String(daylightNow);
+  $("night-details").hidden = daylightNow;
+  $("solar-detail").hidden = !daylightNow;
   const noonInstant = daylight.day
     ? Daylight.instant(daylight.day + "T12:00", zone)
     : null;
@@ -204,7 +206,7 @@ function render(s, preview) {
     ),
     uv = d.air?.uv_index?.[ai],
     aqi = d.air?.us_aqi?.[ai];
-  $("uv").hidden = !daylight.daytime;
+  $("uv").hidden = !daylightNow;
   text(
     "uv",
     finite(uv) === null ? "UV unavailable" : "UV " + finite(uv).toFixed(1),
@@ -218,34 +220,37 @@ function render(s, preview) {
   Radar.setPlace(s.place);
 
   renderHourly(s);
-  const rising = !daylight.daytime;
-  $("light-title").replaceChildren(solarIcon(rising));
+  const rising = !daylightNow;
+  const lightLabel = document.createElement("span");
+  lightLabel.className = "section-name";
+  lightLabel.textContent = "Sun & moon";
+  $("light-title").replaceChildren(solarIcon(rising), lightLabel);
   $("light-title").title = rising ? "Next sunrise" : "Next sunset";
   const duration = daylight.duration,
-    remaining = daylight.remaining,
+    remaining = daylightNow && !daylight.daytime ? null : daylight.remaining,
     countdown =
       remaining === null
         ? "Unavailable"
         : `${Math.floor(remaining / 60)}h ${remaining % 60}m`;
   text(
     "daylength",
-    daylight.daytime && duration !== null
+    daylightNow && duration !== null
       ? `${Math.floor(duration / 60)}h ${duration % 60}m daylight`
-      : "NIGHT · THE MOON",
+      : daylightNow ? "Daylight" : "Moonlight",
   );
-  $("sun").style.display = daylight.daytime ? "" : "none";
-  $("arc-moon").style.display = daylight.daytime ? "none" : "";
+  $("sun").style.display = daylightNow ? "" : "none";
+  $("arc-moon").style.display = daylightNow ? "none" : "";
   $("arc-marker").style.display = t === null ? "none" : "";
   if (t !== null)
     $("arc-marker").style.transform =
-      `translate(${20 + 300 * t}px,${125 - 400 * t * (1 - t)}px)`;
-  text("sun-caption", daylight.daytime ? "Daylight" : countdown);
-  $("sun-caption").setAttribute("font-size", daylight.daytime ? "12" : "25");
+      `translate(${20 + 300 * t}px,${54 - 164 * t * (1 - t)}px)`;
+  text("sun-caption", daylightNow ? "Daylight" : "Night");
+  $("sun-caption").setAttribute("font-size", "11");
   text(
     "next-event",
     remaining === null
       ? "Sun times unavailable for the forecast period."
-      : `${daylight.daytime ? "Sunset" : "Sunrise"} in ${countdown}`,
+      : `${daylightNow ? "Sunset" : "Sunrise"} in ${countdown}`,
   );
   $("days").replaceChildren();
   const days = Array.isArray(a.time) ? a.time : [];
@@ -305,6 +310,12 @@ window.weather.onUpdate((s) => {
   }
   setRefreshBusy(false);
   if (s.error) {
+    if (s.selectionFailed && forecastState(s.last)) {
+      active = s.last.place;
+      $("unit").value = s.last.unit;
+      text("status", s.error);
+      return;
+    }
     lastError = s.error;
     if (forecastState(s.last)) {
       render(s.last);
@@ -419,7 +430,10 @@ $("unit").onchange = async () => {
     try {
       await window.weather.select(active, $("unit").value);
     } catch (e) {
-      if (token === selectionId) text("status", errorMessage(e));
+      if (token === selectionId) {
+        if (state) $("unit").value = state.unit;
+        text("status", errorMessage(e));
+      }
     } finally {
       if (token === selectionId) {
         selecting = false;
@@ -511,9 +525,14 @@ window.weather.onTick(() => {
   }
 });
 
+let renderedHourlyState, renderedHourBucket;
 let selectedHour = null,
   hourlyPlace = "";
 function renderHourly(s) {
+  const hourBucket = Math.floor(Date.now() / 3600000);
+  if (s === renderedHourlyState && hourBucket === renderedHourBucket) return;
+  renderedHourlyState = s;
+  renderedHourBucket = hourBucket;
   const list = Hourly.next(s.data?.hourly);
   const key = `${s.place.latitude},${s.place.longitude}`;
   if (hourlyPlace !== key) {
@@ -555,15 +574,13 @@ function renderHourly(s) {
   text(
     "hourly-summary",
     rain
-      ? `Rain chance reaches ${Math.round(rain.rain)}% at ${label(rain.time)}. Tap an hour for details.`
-      : "Your day, hour by hour. Tap an hour for details.",
+      ? `Rain chance reaches ${Math.round(rain.rain)}% at ${label(rain.time)}.`
+      : "Select an hour for details.",
   );
   for (const h of list) {
     const b = document.createElement("button");
     b.className = "hour";
     b.type = "button";
-    b.setAttribute("role", "option");
-    b.setAttribute("aria-selected", String(h.time === selectedHour));
     b.setAttribute("aria-pressed", String(h.time === selectedHour));
     b.setAttribute(
       "aria-label",
@@ -580,7 +597,6 @@ function renderHourly(s) {
     b.onclick = () => {
       selectedHour = h.time;
       for (const button of scroller.children) {
-        button.setAttribute("aria-selected", String(button === b));
         button.setAttribute("aria-pressed", String(button === b));
       }
       detail(h);
@@ -614,25 +630,7 @@ function renderHourly(s) {
   }
 }
 
-const pageHost = document.querySelector("main");
 $("to-outlook").onclick = () =>
   scrollToPage("outlook-page");
 $("to-now").onclick = () =>
   scrollToPage("now-page");
-let wheelUntil = 0;
-pageHost?.addEventListener(
-  "wheel",
-  (e) => {
-    if (
-      $("forecast").hidden ||
-      Math.abs(e.deltaY) < Math.abs(e.deltaX) ||
-      e.ctrlKey
-    )
-      return;
-    e.preventDefault();
-    if (Date.now() < wheelUntil || Math.abs(e.deltaY) < 8) return;
-    wheelUntil = Date.now() + 650;
-    scrollToPage(e.deltaY > 0 ? "outlook-page" : "now-page");
-  },
-  { passive: false },
-);

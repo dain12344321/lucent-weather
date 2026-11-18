@@ -37,6 +37,7 @@ const RUNTIME_FILES = Object.freeze([
   "typography.css",
   "hourly.css",
   "refinement.css",
+  "alpine-ridge.webp",
   "dock.css",
   "LucentWeather.ico",
   "LICENSE",
@@ -74,16 +75,13 @@ function pruneLocales(directory, languages = ["en-US", "en-GB"]) {
 
 function isPortableRoot(directory) {
   const required = [
-    path.join(directory, "LucentWeather.exe"),
-    path.join(directory, "resources", "app.asar"),
-    path.join(directory, "resources", "Geometry.exe"),
-    path.join(directory, "locales"),
+    "LucentWeather.exe", "resources/app.asar", "resources/Geometry.exe",
+    "icudtl.dat", "resources.pak", "ffmpeg.dll", "v8_context_snapshot.bin", "locales/en-US.pak",
   ];
-  return (
-    required.slice(0, 3).every((entry) => fs.existsSync(entry)) &&
-    fs.existsSync(required[3]) &&
-    fs.statSync(required[3]).isDirectory()
-  );
+  return required.every(name => {
+    const stat = fs.statSync(path.join(directory, name), {throwIfNoEntry: false});
+    return stat?.isFile() && stat.size > 0;
+  });
 }
 
 async function packageWindows(options = {}) {

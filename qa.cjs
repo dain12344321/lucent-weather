@@ -4,6 +4,15 @@ const { app, BrowserWindow, screen } = require("electron");
 const { tileBounds } = require("./placement");
 module.exports = async function runQA(ctx) {
   const { qa, win, dock, secondary, json, label, show, refresh, setPosition, setScreens, configPath, diagnostics, setConfig, setSelectedDock } = ctx;
+  const fullscreenBlockedOnDisplay = (display) => {
+    const state = diagnostics();
+    if (display.id === screen.getPrimaryDisplay().id)
+      return Boolean(state.geometry?.fullscreenBlocked);
+    const entry = state.secondary.find(
+      (item) => item.bounds && screen.getDisplayMatching(item.bounds).id === display.id,
+    );
+    return Boolean(entry?.fullscreenBlocked);
+  };
       if (process.argv.includes("--qa-taskbar-only")) return require("./taskbar-qa.cjs")(ctx);
       try {
         const places = await json(
@@ -104,6 +113,8 @@ module.exports = async function runQA(ctx) {
             return result;
           })()
         `);
+        if (!refinement.images || !refinement.radar.includes("observed"))
+          throw Error("Live NOAA radar frame failed to render: " + refinement.radar);
         if(refinement.headerTop<0 || refinement.days!==7 || Math.abs(refinement.pageTop)>2 || refinement.firstHeight>refinement.viewport+2) throw Error("Two-page layout regression: "+JSON.stringify(refinement));
         fs.writeFileSync(path.join(qa,"refinement-test.json"),JSON.stringify(refinement,null,2));
         fs.writeFileSync(path.join(qa,"outlook-preview.png"),(await win.webContents.capturePage()).toPNG());
@@ -267,6 +278,44 @@ module.exports = async function runQA(ctx) {
         show();
         await sleep(1500);
         assert.equal(dock.isVisible(), true, "Taskbar exposed before recovery checks");
+        await win.webContents.executeJavaScript(
+          "document.getElementById('close').click()",
+        );
+        await sleep(250);
+        assert.equal(win.isVisible(), false, "Close dismisses the forecast panel");
+        assert.equal(dock.isVisible(), true, "Dismiss keeps the taskbar tile available");
+        await dock.webContents.executeJavaScript(
+          "document.getElementById('widget').click()",
+        );
+        await sleep(250);
+        assert.equal(win.isVisible(), true, "Taskbar tile reopens the dismissed panel");
+        assert.equal(win.isFocused(), true, "Reopened panel receives focus");
+        fs.writeFileSync(
+          path.join(qa, "close-reopen-test.json"),
+          JSON.stringify(
+            {
+              passed: true,
+              closeButtonDismissed: true,
+              tileRemainedVisible: dock.isVisible(),
+              tileReopenedPanel: win.isVisible(),
+              reopenedPanelFocused: win.isFocused(),
+            },
+            null,
+            2,
+          ),
+        );
+        const focusTarget = new BrowserWindow({show:false, width:220, height:100, skipTaskbar:true, webPreferences:{sandbox:true}});
+        try {
+          ctx.enableBlurTest(true);
+          focusTarget.show();
+          focusTarget.focus();
+          await sleep(1250);
+          assert.equal(win.isVisible(), false, "Outside focus dismisses the panel using the normal blur timer");
+        } finally {
+          ctx.enableBlurTest(false);
+          focusTarget.destroy();
+        }
+        show();
         dock.webContents.forcefullyCrashRenderer();
         await sleep(2000);
         assert.equal(dock.webContents.isCrashed(), false);
@@ -280,12 +329,24 @@ module.exports = async function runQA(ctx) {
         assert.ok(helperBefore, "Primary helper has a process");
         process.kill(helperBefore);
         await sleep(3200);
-        assert.ok(diagnostics().helperPid && diagnostics().helperPid !== helperBefore, "Primary helper restarts after exit");
-        assert.equal(dock.isVisible(), true, "Primary tile returns after helper recovery");
+        const helperAfter = diagnostics();
+        assert.ok(helperAfter.helperPid && helperAfter.helperPid !== helperBefore, "Primary helper restarts after exit");
+        let helperRecoveryTile = "visible";
+        if (fullscreenBlockedOnDisplay(screen.getPrimaryDisplay())) {
+          assert.equal(dock.isVisible(), false, "Primary tile stays hidden beneath an external fullscreen window");
+          helperRecoveryTile = "hidden-under-external-fullscreen";
+        } else {
+          assert.equal(dock.isVisible(), true, "Primary tile returns after helper recovery");
+        }
         const stabilityChecks = [];
         setScreens("all");
         await sleep(2500);
         for (const tile of BrowserWindow.getAllWindows().filter(w => w !== win)) {
+          const display = screen.getDisplayMatching(tile.getBounds());
+          if (fullscreenBlockedOnDisplay(display)) {
+            stabilityChecks.push({displayId:display.id,skipped:"External fullscreen window covers taskbar"});
+            continue;
+          }
           const overlay = new BrowserWindow({show:false, frame:false, transparent:true, skipTaskbar:true, focusable:false, webPreferences:{sandbox:true}});
           let hides = 0;
           const onHide = () => hides++;
@@ -315,8 +376,16 @@ module.exports = async function runQA(ctx) {
             .filter(entry => screen.getDisplayMatching(entry.bounds).id === display.id)
             .some(entry => entry.visible);
           if (!primary && !secondary.diagnostics().some(entry => screen.getDisplayMatching(entry.bounds).id === display.id)) continue;
+          if (fullscreenBlockedOnDisplay(display)) {
+            fullscreenChecks.push({displayId:display.id,primary,skipped:"External fullscreen window covers taskbar"});
+            continue;
+          }
           show();
           await sleep(1200);
+          if (fullscreenBlockedOnDisplay(display)) {
+            fullscreenChecks.push({displayId:display.id,primary,skipped:"External fullscreen window became active during QA"});
+            continue;
+          }
           assert.equal(targetVisible(), true, "Taskbar tile ready before fullscreen");
           win.hide();
           const mock = new BrowserWindow({show:false, frame:false, skipTaskbar:true, title:"Lucent Weather fullscreen QA", backgroundColor:"#102039", webPreferences:{sandbox:true,partition:"qa-video"}});
@@ -333,7 +402,16 @@ module.exports = async function runQA(ctx) {
             await sleep(2400);
             const video = await mock.webContents.executeJavaScript("({fullscreen:!!document.fullscreenElement,playing:!v.paused,time:v.currentTime,width:v.videoWidth})");
             assert.equal(video.fullscreen,true);assert.equal(video.playing,true);assert.ok(video.time>0 && video.width>0);
-            assert.equal(targetVisible(),false,"Hide tile during HTML video fullscreen");
+            const playerHandle = mock.getNativeWindowHandle().readBigUInt64LE().toString();
+            const nativeForeground = diagnostics().geometry?.foregroundHandle === playerHandle;
+            // Windows can decline a programmatic focus request on an in-use desktop.
+            // Keep the real video fullscreen and explicitly cover the test taskbar in that case.
+            if (!nativeForeground) {
+              mock.setAlwaysOnTop(true,"pop-up-menu");
+              mock.moveTop();
+              await sleep(1800);
+            }
+            assert.equal(targetVisible(),false,"Hide tile during HTML video fullscreen " + JSON.stringify({display:display.bounds,player:mock.getBounds(),nativeForeground,geometry:diagnostics()}));
             assert.equal(mock.isFocused(),true,"Taskbar watcher must not steal focus from video");
             await mock.webContents.executeJavaScript("document.exitFullscreen()");
             await sleep(1800);
@@ -342,12 +420,11 @@ module.exports = async function runQA(ctx) {
             mock.setBounds(display.bounds);mock.setAlwaysOnTop(true,"screen-saver");mock.focus();
             await sleep(2400);
             assert.equal(targetVisible(),false,"Hide tile under a borderless fullscreen player");
-            fullscreenChecks.push({displayId:display.id,primary,video,htmlVideoHideAndReturn:true,borderlessHidden:true});
+            fullscreenChecks.push({displayId:display.id,primary,video,nativeForeground,htmlVideoHideAndReturn:true,borderlessHidden:true});
           } finally { mock.destroy(); }
           show();await sleep(1800);
           assert.equal(targetVisible(),true,"Recover after fullscreen player closes");
         }
-        const secondaryFullscreenHideAndReturn = fullscreenChecks.some(check=>!check.primary) ? true : null;
         fs.writeFileSync(path.join(qa,"fullscreen-video-tests.json"),JSON.stringify(fullscreenChecks,null,2));
         fs.writeFileSync(
           path.join(qa, "interaction-tests.json"),
@@ -355,10 +432,14 @@ module.exports = async function runQA(ctx) {
             {
               passed: true,
               openCloseCycles: 5,
+              closeButtonDismissAndTileReopen: true,
+              outsideFocusDismissedPanel: true,
               rendererRecovery: true,
               helperRecovery: true,
-              fullscreenHideAndReturn: true,
-              secondaryFullscreenHideAndReturn,
+              helperRecoveryTile,
+              fullscreenHideAndReturn: fullscreenChecks.some(check => check.htmlVideoHideAndReturn && check.borderlessHidden),
+              fullscreenSkippedDisplays: fullscreenChecks.filter(check => check.skipped).map(({displayId,primary,skipped}) => ({displayId,primary,skipped})),
+              secondaryFullscreenHideAndReturn: fullscreenChecks.some(check => !check.primary && check.htmlVideoHideAndReturn && check.borderlessHidden) ? true : null,
             },
             null,
             2,

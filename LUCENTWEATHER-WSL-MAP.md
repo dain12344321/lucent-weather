@@ -1,8 +1,6 @@
 # Lucent Weather WSL and Windows map
 
-The source tree and build dependencies stay on the Linux filesystem. Windows
-receives only the generated portable runtime and the small Windows-side
-wrappers.
+The canonical published source is the GitHub repository. The historical WSL checkout layout is shown below. On this PC WSL was retired. Version 1.0.0 was built in a temporary native Windows checkout, using the same Windows build entry point as CI. The permanent Windows handoff folder holds release ZIPs, QA evidence and rollback material.
 
 ```text
 /home/dain0/projects/lucent-weather/       WSL source checkout
@@ -19,7 +17,7 @@ wrappers.
     │   ├── resources/Geometry.exe
     │   └── locales/{en-US,en-GB}.pak
     └── release/
-        └── LucentWeather-v0.9.3-Windows-x64/  ZIP staging root
+        └── LucentWeather-v1.0.0-Windows-x64/  ZIP staging root
 
 C:\Programs\Lucent Weather\               optional Windows install target
 ├── LucentWeather.exe

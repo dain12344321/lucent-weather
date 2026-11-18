@@ -25,7 +25,7 @@ test("editing a query discards late search results and permits another search",a
   finish([{label:"London, United Kingdom"}]);await pending;
   assert.equal(get("results").children.length,0);
 });
-test("a failed location change clears the old forecast and enables retry controls",()=>{
+test("an empty forecast after a failed first request enables retry controls",()=>{
   const {ctx,get}=harness();get("results").children.push({disabled:true});
   get("forecast").hidden=false;get("setup").hidden=true;
   ctx.update({error:"Connection unavailable",last:null});
@@ -40,4 +40,14 @@ test("astronomy and hourly inputs cannot manufacture missing events or duplicate
   const now=Date.parse("2026-09-06T12:00:00Z"),time=now/1000;
   const rows=Hourly.next({time:[time+3600,time,time],temperature_2m:[null,0,99]},now);
   assert.equal(rows.length,2);assert.equal(rows[0].temp,0);assert.equal(rows[1].temp,undefined);
+});
+
+test("a failed unit change restores the saved unit and preserves the active forecast", () => {
+  const {ctx, get} = harness();
+  const previous = {place:{name:"London"}, unit:"F", data:{current:{}, daily:{}}};
+  get("unit").value = "C";
+  ctx.update({error:"Cannot reach the weather service.", last:previous, selectionFailed:true});
+  assert.equal(get("unit").value, "F");
+  assert.equal(vm.runInContext("active.name", ctx), "London");
+  assert.equal(get("status").textContent, "Cannot reach the weather service.");
 });

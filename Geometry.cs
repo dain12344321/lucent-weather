@@ -74,25 +74,26 @@ class Geometry {
   string c=RawClassName(h);
   return c=="Progman"||c=="WorkerW"||c=="Shell_TrayWnd"||c=="Shell_SecondaryTrayWnd";
  }
- static bool ForegroundFullscreen(IntPtr taskbar,IntPtr widget,IntPtr foreground,out Rect front){
+ static bool CoversTaskbarMonitor(IntPtr taskbar,IntPtr widget,IntPtr foreground,Rect monitor,out Rect front){
   front=new Rect();
   if(foreground==IntPtr.Zero||foreground==widget||IsShellWindow(foreground,taskbar))return false;
   if(!IsWindowVisible(foreground)||IsIconic(foreground)||IsCloaked(foreground))return false;
   if((GetWindowLong(foreground,-20)&0x20)!=0||!FrameBounds(foreground,out front))return false;
-  var info=new MonitorInfo();info.Size=Marshal.SizeOf(typeof(MonitorInfo));
-  if(!GetMonitorInfo(MonitorFromWindow(taskbar,2),ref info))return false;
-  return CoversMonitor(front,info.Monitor);
+  return CoversMonitor(front,monitor);
  }
  static bool FullscreenAboveTaskbar(IntPtr taskbar,IntPtr widget,IntPtr foreground,out Rect front){
   // Active games may use a presentation surface below Explorer's nominal
   // z-order. Keep the foreground check, then inspect background full-monitor
   // windows above the taskbar so a dialog cannot expose a tile over a game.
-  if(ForegroundFullscreen(taskbar,widget,foreground,out front))return true;
+  front=new Rect();
+  var info=new MonitorInfo();info.Size=Marshal.SizeOf(typeof(MonitorInfo));
+  if(taskbar==IntPtr.Zero||!GetMonitorInfo(MonitorFromWindow(taskbar,2),ref info))return false;
+  if(CoversTaskbarMonitor(taskbar,widget,foreground,info.Monitor,out front))return true;
   IntPtr candidate=GetTopWindow(IntPtr.Zero);
   for(int i=0;i<1024&&candidate!=IntPtr.Zero;i++){
    if(candidate==taskbar)return false;
    Rect candidateBounds;
-   if(candidate!=widget&&ForegroundFullscreen(taskbar,widget,candidate,out candidateBounds))return true;
+   if(candidate!=widget&&CoversTaskbarMonitor(taskbar,widget,candidate,info.Monitor,out candidateBounds))return true;
    candidate=GetWindow(candidate,GW_HWNDNEXT);
   }
   return false;
@@ -176,7 +177,7 @@ class Geometry {
       }
       bars.Append("]");
       if(!secondary)lastSecondaryBars=bars.ToString();
-      output.WriteLine("{\"secondaryBars\":"+bars+",\"tray\":"+(trayOk?Json(trayRect):"null")+",\"fullscreenBlocked\":"+(fullscreenBlocked?"true":"false")+",\"taskbarAbove\":"+(taskbarAbove?"true":"false")+",\"visible\":"+(visible?"true":"false")+",\"frontClass\":\""+ClassName(fg)+"\",\"bar\":"+Json(bar)+",\"front\":"+Json(front)+"}");
+      output.WriteLine("{\"secondaryBars\":"+bars+",\"tray\":"+(trayOk?Json(trayRect):"null")+",\"fullscreenBlocked\":"+(fullscreenBlocked?"true":"false")+",\"taskbarAbove\":"+(taskbarAbove?"true":"false")+",\"visible\":"+(visible?"true":"false")+",\"frontClass\":\""+ClassName(fg)+"\",\"foregroundHandle\":\""+fg.ToInt64()+"\",\"bar\":"+Json(bar)+",\"front\":"+Json(front)+"}");
      }catch{
       WriteUnavailable(output,secondary?"[]":lastSecondaryBars);
      }

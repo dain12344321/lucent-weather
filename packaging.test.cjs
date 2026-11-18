@@ -11,14 +11,14 @@ const staging = require("./scripts/stage-release.cjs");
 
 test("release metadata is pinned to the Lucent Weather portable contract", () => {
   assert.equal(packageJson.name, "lucent-weather");
-  assert.equal(packageJson.version, "0.9.3");
+  assert.equal(packageJson.version, "1.0.0");
   assert.equal(packageJson.devDependencies["@electron/packager"], "20.3.0");
   assert.equal(packageJson.devDependencies["@resvg/resvg-js"], "2.6.2");
   assert.match(packageJson.scripts.test, /test\.cjs/);
   assert.match(packageJson.scripts["build:release"], /stage-release/);
   assert.equal(packaging.portableName, "LucentWeather-win32-x64");
   assert.deepEqual(packaging.ELECTRON_LANGUAGES, ["en-US", "en-GB"]);
-  assert.equal(staging.releaseName, "LucentWeather-v0.9.3-Windows-x64");
+  assert.equal(staging.releaseName, "LucentWeather-v1.0.0-Windows-x64");
   assert.deepEqual(staging.WINDOWS_FILES, [
     "Install-LucentWeather.cmd",
     "Install-LucentWeather.ps1",
@@ -38,6 +38,7 @@ test("asar allowlist retains every application runtime module and omits maintena
     "secondary.js",
     "index.html",
     "dock.html",
+    "alpine-ridge.webp",
     "node_modules/leaflet/dist/leaflet.js",
     "node_modules/leaflet/dist/leaflet.css",
     "node_modules/leaflet/package.json",
@@ -71,6 +72,10 @@ test("portable-root validation requires the executable and runtime siblings", ()
     fs.writeFileSync(path.join(temporary, "LucentWeather.exe"), "exe");
     fs.writeFileSync(path.join(temporary, "resources", "app.asar"), "asar");
     fs.writeFileSync(path.join(temporary, "resources", "Geometry.exe"), "helper");
+    assert.equal(packaging.isPortableRoot(temporary), false);
+    for (const name of ["icudtl.dat","resources.pak","ffmpeg.dll","v8_context_snapshot.bin","locales/en-US.pak"]) {
+      fs.writeFileSync(path.join(temporary, name), "fixture");
+    }
     assert.equal(packaging.isPortableRoot(temporary), true);
     fs.rmSync(path.join(temporary, "resources", "Geometry.exe"));
     assert.equal(packaging.isPortableRoot(temporary), false);
