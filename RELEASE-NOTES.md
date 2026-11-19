@@ -1,3 +1,12 @@
+# Lucent Weather v1.1.0
+
+- Refines the forecast typography, spacing, and panel contrast across daylight and nighttime scenes.
+- Gives rain, drizzle, showers, ice, snow, and storms distinct icons shared by the flyout and taskbar. Sunrise, sunset, and all eight lunar phases have updated artwork.
+- Shows six complete hours at the standard flyout width. Selected-hour readings and seven-day conditions, rain chances, and temperatures are aligned for faster scanning.
+- Preserves saved locations, units, taskbar placement, and screen preferences.
+
+---
+
 # Lucent Weather v1.0.1
 
 - Restores the v0.9.3 forecast, weather scenes, daylight arc, radar layout and taskbar styling.
